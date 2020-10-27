@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>bank</AssemblyName>
+    <UserSecretsId>e8002829-35e7-4cfd-8d4e-0c13a7132f1e</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Bank.Domains\Bank.Domains.csproj" />
+    <ProjectReference Include="..\Bank.EFCore.MySql\Bank.EFCore.MySql.csproj" />
+    <ProjectReference Include="..\Bank.ICBC\Bank.ICBC.csproj" />
+    <ProjectReference Include="..\CPTech.Core\CPTech.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+
+
+</Project>
