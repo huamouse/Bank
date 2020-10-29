@@ -8,14 +8,14 @@ namespace Icbc.Business
     {
         public override HttpMethod Method => HttpMethod.Post;
 
-        //public override string ServiceUrl => "https://apipcs3.dccnet.com.cn/api/mybank/pay/cpay/cppayapply/V2";
-        public override string ServiceUrl => "https://gw.open.icbc.com.cn/api/mybank/pay/cpay/cppayapply/V2";
+        //public override string ServiceUrl => "https://gw.open.icbc.com.cn/api/mybank/pay/cpay/cppayapply/V2";
+        public override string ServiceUrl => "https://apipcs3.dccnet.com.cn/api/mybank/pay/cpay/cppayapply/V2";
 
         public override Type GetBizContentClass() => typeof(MybankPayCpayCppayapplyResponseV2);
 
         public override Type GetResponseClass() => typeof(MybankPayCpayCppayapplyResponseV2);
 
-        public class RecvMallInfo
+        public class RecvMallInfo : BizContent
         {
             [JsonPropertyName("mallCode")]
             public string MallCode { get; set; }

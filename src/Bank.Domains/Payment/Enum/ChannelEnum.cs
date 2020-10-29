@@ -7,7 +7,8 @@ namespace Bank.Domains.Payment
     /// </summary>
     public enum ChannelEnum
     {
-        ICBC = 1,
+        Unknown = 0,
+        ICBC = 0,
         ABC,
         BOC,
         CCB

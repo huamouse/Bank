@@ -2,10 +2,10 @@ using CPTech.Security;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
-namespace Encrypt
+namespace Encrypt.Test
 {
     [TestClass]
-    public class UnitTest1
+    public class EncryptTest
     {
         private static readonly string APIGW_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7joSdXvKEPn9rl8DjbDOIx0A4qv4rKKguCpfS6j265NJMHwm/2QB2eY9Zbw2XIosi+9TVrp601/2KvlaG4T3IEl64icX7eG2mZ3iUfec/kTnjziRk7jMUxeMpJkGMnWfgxcTu7XPIIJEFiYaXcrGSar0BpM4Ys4k9yq5BbmdWfPZZpRvbuTWXSjJkIhVFIYgiy/dDet1cYBJs71xUwjzVQjFFPdpaNtI6uehMf83Qy4KwYJY75tqpVUPqmw5Levq+yFDT81A1+bG0LBZ1LH8GQrZR+IYY70IBxWKGrYG3xLrWPpU/YTJK/WhEeTOf0Yp38aLdqvKeC11hv6Pghhu5QIDAQAB";
 

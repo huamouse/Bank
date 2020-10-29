@@ -1,13 +1,13 @@
-﻿using Bank.Domains.Payment;
-using Bank.EFCore.Models;
+﻿using Bank.Domains.Repositoies;
 using System.Threading.Tasks;
 
 namespace Bank.Domains.Payment
 {
-    public interface IPaymentRepository
+    public interface IPaymentRepository : IRepository
     {
-        string OrderCreate(OrderPayDto order);
-
-        Task<string> GetUserAsync();
+        Task<int> OrderCreateAsync(PayOrder order);
+        Task<int> OrderCloseAsync(PayOrder order);
+        Task<int> OrderCancelAsync(PayOrder order);
+        Task<PayOrder> OrderQueryLastAsync(long orderNo);
     }
 }

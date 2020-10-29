@@ -5,6 +5,9 @@ namespace Bank.Domains.Payment
 {
     public class OrderCreateDto
     {
+        [Description("平台方标识")]
+        public string Tag { get; set; }
+
         [Description("收款方")]
         public string Payee { get; set; }
 

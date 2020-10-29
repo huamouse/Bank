@@ -64,11 +64,7 @@ namespace CPTech.Middleware
 
         private string SerializerErrorMessage(int code, string message)
         {
-            return JsonSerializer.Serialize(ResultModel.Error(code, message), new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            });
+            return JsonSerializer.Serialize(ResultModel.Error(code, message), Constants.SerializerOptions);
         }
     }
     #endregion

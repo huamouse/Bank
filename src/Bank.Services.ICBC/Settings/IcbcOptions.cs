@@ -6,7 +6,14 @@ namespace Bank.ICBC.Config
     {
         public string AppId { get; set; }
         public string PrivateKey { get; set; }
+        public string PrivateKeyType { get; set; }
         public string GatewayPublicKey { get; set; }
+
+        public string BizAppId { get; set; }
+        public string BizPrivateKey { get; set; }
+        public string BizPrivateKeyType { get; set; }
+        public string BizGatewayPublicKey { get; set; }
+
         public List<MerInfo> MerInfos { get; set; }
 
         public class MerInfo

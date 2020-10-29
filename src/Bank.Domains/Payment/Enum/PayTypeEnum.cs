@@ -7,11 +7,13 @@ namespace Bank.Domains.Payment
     /// </summary>
     public enum PayTypeEnum
     {
+        [Description("未知")]
+        Unknown = 0,
         [Description("支付宝")]
-        Alipay = 1,
+        Alipay,
         [Description("微信支付")]
         WechatPay,
-        [Description("其他")]
-        Other
+        [Description("银联")]
+        Bank
     }
 }

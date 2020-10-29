@@ -1,8 +1,9 @@
 ﻿using Bank.Domains.Payment;
 using Bank.ICBC.Config;
+using CPTech.Core;
+using CPTech.Security;
 using Icbc;
 using Icbc.Business;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -19,42 +20,29 @@ namespace Bank.Services
         private readonly IHttpClientFactory clientFactory;
         private readonly ILogger<IcbcService> logger;
 
-        //private readonly string merId;
-        //private readonly string merPrtclNo;
-        //private readonly string appId;
-        //private readonly string privateKey;
-        //private readonly string gatewayPublicKey;
-
-        private readonly string bizAppId;
-        private readonly string bizPrivateKey;
-        private readonly string bizGatewayPublicKey;
-
-        public IcbcService(IConfiguration configuration,
+        public IcbcService(IHttpClientFactory clientFactory, 
             IOptions<IcbcOptions> icbcOptions,
-            IHttpClientFactory clientFactory,
             ILogger<IcbcService> logger)
         {
             this.clientFactory = clientFactory;
             this.logger = logger;
 
-            this.bizAppId = configuration.GetValue<string>("Payment:ICBC:BizAppId");
-            this.bizPrivateKey = configuration.GetValue<string>("Payment:ICBC:BizPrivateKey");
-            this.bizGatewayPublicKey = configuration.GetValue<string>("Payment:ICBC:BizGatewayPublicKey");
-
             options = icbcOptions.Value;
         }
 
-        public string Pay(Payment payment)
+        public string OrderPay(Payment payment)
         {
             string result = null;
             switch (payment.PayType)
             {
+                case PayTypeEnum.Unknown:
+                    throw new NotImplementedException();
                 case PayTypeEnum.Alipay:
                     throw new NotImplementedException();
                 case PayTypeEnum.WechatPay:
                     result = B2cPay(payment);
                     break;
-                case PayTypeEnum.Other:
+                case PayTypeEnum.Bank:
                     result = B2bPay(payment);
                     break;
             }
@@ -62,35 +50,57 @@ namespace Bank.Services
             return result;
         }
 
-        public string Query(PayQuery payQuery)
+        public string OrderQuery(PayQuery payQuery)
         {
             string result = null;
             switch (payQuery.PayType)
             {
+                case PayTypeEnum.Unknown:
+                    throw new NotImplementedException();
                 case PayTypeEnum.Alipay:
                     throw new NotImplementedException();
                 case PayTypeEnum.WechatPay:
                     result = B2cQuery(payQuery);
                     break;
-                case PayTypeEnum.Other:
+                case PayTypeEnum.Bank:
                     result = B2bQuery(payQuery);
                     break;
             }
 
             return result;
         }
-        
-        public string Notify(Payment payment)
+
+        public string OrderClose(PayQuery payQuery)
         {
-            switch (payment.PayType)
+            string result = null;
+            switch (payQuery.PayType)
+            {
+                case PayTypeEnum.Unknown:
+                    throw new NotImplementedException();
+                case PayTypeEnum.Alipay:
+                    throw new NotImplementedException();
+                case PayTypeEnum.WechatPay:
+                    result = B2cClose(payQuery);
+                    break;
+                case PayTypeEnum.Bank:
+                    result = B2bClose(payQuery);
+                    break;
+            }
+
+            return result;
+        }
+
+        public string Notify(PayNotify payNotify)
+        {
+            switch (payNotify.PayType)
             {
                 case PayTypeEnum.Alipay:
                     throw new NotImplementedException();
                 case PayTypeEnum.WechatPay:
-                    B2cPay(payment);
+                    B2cNotify(payNotify);
                     break;
-                case PayTypeEnum.Other:
-                    B2bPay(payment);
+                case PayTypeEnum.Bank:
+                    B2bNotify(payNotify);
                     break;
             }
             throw new NotImplementedException();
@@ -179,16 +189,53 @@ namespace Bank.Services
             return JsonSerializer.Serialize(response);
         }
 
-        private string B2cNotify(Payment payment)
+        private string B2cClose(PayQuery payQuery)
         {
-            return "";
+            IcbcClient client = new IcbcClient(options.AppId, options.PrivateKey, options.GatewayPublicKey, clientFactory.CreateClient());
+            var merInfo = options.MerInfos.FirstOrDefault(m => m.Id == "100165134848") ?? throw new Exception("无效的Merinfo信息!");
+
+            var bizContent = new CardbusinessAggregatepayB2cOnlineOrderqryRequestV1.CardbusinessAggregatepayB2cOnlineOrderqryRequestV1Biz()
+            {
+                MerId = merInfo.Id,
+                OutTradeNo = payQuery.OrderNo,
+                DealFlag = "1",
+                IcbcAppId = options.AppId
+            };
+
+            var response = (CardbusinessAggregatepayB2cOnlineOrderqryResponseV1)client.Execute(
+                new CardbusinessAggregatepayB2cOnlineOrderqryRequestV1()
+                {
+                    Content = bizContent
+                });
+
+            return JsonSerializer.Serialize(response);
+        }
+
+        private string B2cNotify(PayNotify payNotify)
+        {
+            B2cNotifyResponse rsp = new B2cNotifyResponse
+            {
+                ResponseBizContent = new B2cNotifyResponse.BizContent
+                {
+                    ReturnCode = 0,
+                    ReturnMsg = "success",
+                    MsgId = payNotify.MsgId
+                },
+                SignType = options.PrivateKeyType
+            };
+
+            string response = JsonSerializer.Serialize(rsp, Constants.SerializerOptions);
+            RsaUtil rsaUtil = new RsaUtil(options.PrivateKey, null);
+            rsp.Sign = rsaUtil.Sign(response);
+
+            return JsonSerializer.Serialize(rsp, Constants.SerializerOptions);
         }
         #endregion
 
         #region E企付
         private string B2bPay(Payment payment)
         {
-            IcbcClient client = new IcbcClient(bizAppId, bizPrivateKey, bizGatewayPublicKey, clientFactory.CreateClient());
+            IcbcClient client = new IcbcClient(options.BizAppId, options.BizPrivateKey, options.BizGatewayPublicKey, clientFactory.CreateClient());
 
             var recvMallInfoList = new List<MybankPayCpayCppayapplyRequestV2.RecvMallInfo>
             {
@@ -306,12 +353,33 @@ namespace Bank.Services
 
         private string B2bQuery(PayQuery payQuery)
         {
-            return "";
+            IcbcClient client = new IcbcClient(options.BizAppId, options.BizPrivateKey, options.BizGatewayPublicKey, clientFactory.CreateClient());
+            var merInfo = options.MerInfos.FirstOrDefault(m => m.Id == "100165134848") ?? throw new Exception("无效的Merinfo信息!");
+
+            var bizContent = new MybankPayCpayCporderqueryRequestV2.QueryPayApplyRequestV2Biz()
+            {
+                AgreeCode = "123",
+                PartnerSeq = "QQQDE1220120510246",
+                OrderCode = "order0003"
+            };
+
+            var response = (CardbusinessAggregatepayB2cOnlineOrderqryResponseV1)client.Execute(
+                new CardbusinessAggregatepayB2cOnlineOrderqryRequestV1()
+                {
+                    Content = bizContent
+                });
+
+            return JsonSerializer.Serialize(response);
         }
 
-        private string B2bNotify(Payment payment)
+        private string B2bClose(PayQuery payQuery)
         {
-            return "";
+            throw new NotImplementedException();
+        }
+
+        private string B2bNotify(PayNotify payNotify)
+        {
+            throw new NullReferenceException();
         }
         #endregion
     }

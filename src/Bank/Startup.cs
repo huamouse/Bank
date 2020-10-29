@@ -1,5 +1,6 @@
 using Bank.Domains.Payment;
 using Bank.EFCore;
+using Bank.EFCore.Repositories;
 using Bank.ICBC.Config;
 using Bank.Services;
 using CPTech.Middleware;
@@ -11,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Text;
@@ -21,6 +23,10 @@ namespace Bank
     public class Startup
     {
         private readonly IConfiguration configuration;
+        private readonly ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+        });
 
         public Startup(IConfiguration configuration)
         {
@@ -63,42 +69,14 @@ namespace Bank
                 };
             });
 
-            //services.AddDbContext<SqlDbContext>(option => option.UseSqlServer(configuration.GetConnectionString("SqlServer")));
-            services.AddDbContext<SqlDbContext>(option => option.UseMySql(configuration.GetConnectionString("MySql")));
+            services.AddDbContext<SqlDbContext>(option => option.UseLoggerFactory(loggerFactory).UseSqlServer(configuration.GetConnectionString("SqlServer")));
+            //services.AddDbContext<SqlDbContext>(option => option.UseMySql(configuration.GetConnectionString("MySql")));
 
             //services.AddScoped<IUserRepository, UserRepository>();
             services.AddHttpClient();
 
             services.AddTransient(typeof(IPaymentService), typeof(IcbcService));
-            //Func<IServiceProvider, IPaymentService> func = provider =>
-            //{
-            //    Func<ChannelEnum, IPaymentService> func2 = channel =>
-            //    {
-            //        return provider.GetService<IcbcService>();
-            //    };
-            //    return func2(ChannelEnum.ICBC);
-            //};
-            //services.AddSingleton<IPaymentService>(func);
-            //services.AddSingleton<IPaymentService>(provider =>
-            //{
-            //    Func<ChannelEnum, IPaymentService> func = channel =>
-            //    {
-            //        switch (channel)
-            //        {
-            //            case ChannelEnum.ICBC:
-            //                return provider.GetService<IcbcService>();
-            //            case ChannelEnum.ABC:
-            //                break;
-            //            case ChannelEnum.BOC:
-            //                break;
-            //            case ChannelEnum.CCB:
-            //                break;
-            //            default:
-            //                break;
-            //        }
-            //    };
-            //    return func;
-            //});
+            services.AddScoped(typeof(IPaymentRepository), typeof(PaymentRepository));
 
             services.AddControllers(options =>
             {

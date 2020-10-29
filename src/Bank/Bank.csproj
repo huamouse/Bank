@@ -15,13 +15,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Bank.Domains\Bank.Domains.csproj" />
-    <ProjectReference Include="..\Bank.EFCore.MySql\Bank.EFCore.MySql.csproj" />
-    <ProjectReference Include="..\Bank.ICBC\Bank.ICBC.csproj" />
+    <ProjectReference Include="..\Bank.EFCore\Bank.EFCore.csproj" />
+    <ProjectReference Include="..\Bank.Services.CCB\Bank.Services.CCB.csproj" />
+    <ProjectReference Include="..\Bank.Services.ICBC\Bank.Services.ICBC.csproj" />
+    <ProjectReference Include="..\CPTech.Core.Jwt\CPTech.Core.Jwt.csproj" />
     <ProjectReference Include="..\CPTech.Core\CPTech.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Models\" />
   </ItemGroup>
 
 

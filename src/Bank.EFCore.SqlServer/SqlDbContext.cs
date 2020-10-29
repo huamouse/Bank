@@ -11,13 +11,5 @@ namespace Bank.EFCore
         }
 
         public virtual DbSet<PayOrder> PayOrder { get; set; }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseSqlServer("Name=Default");
-            }
-        }
     }
 }

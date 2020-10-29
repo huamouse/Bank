@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Bank.Domains\Bank.Domains.csproj" />
+    <ProjectReference Include="..\CPTech.Core\CPTech.Core.csproj" />
     <ProjectReference Include="..\CPTech.Security\CPTech.Security.csproj" />
   </ItemGroup>
 

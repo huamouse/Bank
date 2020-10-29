@@ -1,5 +1,6 @@
 # VS Project file
 .vs/
+.vscode/
 
 # Build and Object Folders  
 bin/  

@@ -1,11 +1,7 @@
 ﻿using Bank.Domains.Payment;
-using Bank.EFCore;
 using CPTech.Core;
 using CPTech.Models;
-using CPTech.Security;
-using Icbc.Business;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -20,19 +16,16 @@ namespace Bank.Controllers
     public class PaymentController : ControllerBase
     {
         private readonly ILogger<PaymentController> logger;
-        private readonly SqlDbContext dbContext;
+        private readonly IPaymentRepository paymentRepository;
         private readonly IEnumerable<IPaymentService> paymentServices;
-        private readonly string privateKey;
 
-        public PaymentController(IConfiguration configuration,
-            SqlDbContext dbContext,
-            IEnumerable<IPaymentService> paymentServices,
-            ILogger<PaymentController> logger)
+        public PaymentController(ILogger<PaymentController> logger,
+            IPaymentRepository paymentRepository,
+            IEnumerable<IPaymentService> paymentServices)
         {
             this.logger = logger;
-            this.dbContext = dbContext;
+            this.paymentRepository = paymentRepository;
             this.paymentServices = paymentServices;
-            this.privateKey = configuration.GetValue<string>("Payment:ICBC:PrivateKey");
         }
 
         [HttpGet]
@@ -48,13 +41,13 @@ namespace Bank.Controllers
 
             PayOrder payOrder = new PayOrder()
             {
+                OrderNo = SnowFlake.NextId(),
                 Amount = decimal.ToInt32(req.Amount * 100),
                 Note = req.Note,
-                CreatorId = req.CreateId,
-                CreationTime = DateTime.Now
+                CreatorId = req.CreateId
             };
-            dbContext.Add(payOrder);
-            await dbContext.SaveChangesAsync();
+
+            await paymentRepository.OrderCreateAsync(payOrder);
 
             return ResultModel.Ok(new
             {
@@ -65,60 +58,97 @@ namespace Bank.Controllers
         [HttpPost("OrderPay")]
         public async Task<ResultModel> OrderPay(OrderPayDto req)
         {
-            var paymentService = paymentServices.FirstOrDefault(service => service.GetType().Name.Equals(req.Channel + "Service", 
+            var paymentService = paymentServices.FirstOrDefault(service => service.GetType().Name.Equals(req.Channel + "Service",
                 StringComparison.OrdinalIgnoreCase)) ?? throw new NetException(500, $"未实现的通道服务:{req.Channel}Service");
 
-            var payOrder = await dbContext.PayOrder.FindAsync(req.OrderId);
+            var payOrder = await paymentRepository.FindAsync<PayOrder>(req.OrderId) ?? throw new NetException(500, "无效的订单号");
+
+            // 取消旧订单
+            if (payOrder.PayTime > new DateTime(2000, 1, 1))
+            {
+                //var rspClose = paymentService.Query(new PayQuery
+                //{
+                //    OrderNo = payOrder.OrderNo.ToString(),
+                //    PayType = payOrder.PayType,
+                //    QueryType = QueryTypeEnum.Close
+                //});
+
+                //payOrder.OrderNo = SnowFlake.NextId();
+            }
+            else
+                payOrder.PayTime = DateTime.Now;
+
             payOrder.PayType = Enum.Parse<PayTypeEnum>(req.PayType, true);
             payOrder.Channel = Enum.Parse<ChannelEnum>(req.Channel, true);
             payOrder.Payer = req.Payer;
 
-            string response = paymentService.Query(new PayQuery
+            await paymentRepository.UpdateAsync(payOrder);
+
+            string response = paymentService.OrderPay(new Payment()
             {
+                OrderNo = payOrder.OrderNo.ToString(),
                 PayType = payOrder.PayType,
-                OrderNo = payOrder.Id.ToString(),
-                QueryType = QueryTypeEnum.OrderQuery
+                Amount = payOrder.Amount,
+                Note = payOrder.Note,
+                NotifyUrl = "https://www.cptech.com.cn/pay/eventreceive",
+                Payer = payOrder.Payer
+            });
+
+            return ResultModel.Ok(response);
+        }
+
+        [HttpGet("OrderQuery/{orderId}")]
+        public async Task<ResultModel> OrderQuery(long orderId)
+        {
+            var payOrder = await paymentRepository.FindAsync<PayOrder>(orderId);
+
+            var paymentService = paymentServices.FirstOrDefault(service => service.GetType().Name.Equals(payOrder.Channel + "Service",
+                StringComparison.OrdinalIgnoreCase)) ?? throw new NetException(500, $"未实现的通道服务:{payOrder.Channel}Service");
+
+            string response = paymentService.OrderQuery(new PayQuery
+            {
+                OrderNo = payOrder.OrderNo.ToString(),
+                PayType = payOrder.PayType
             });
             return ResultModel.Ok(response);
         }
 
-        [HttpPost("OrderQuery")]
-        public async Task<ResultModel> OrderQuery(OrderQueryDto req)
+        [HttpPost("orderClose")]
+        public async Task<ResultModel> OrderClose((long OrderNo, string CloseId) req)
         {
-            Enum.TryParse<QueryTypeEnum>(req.QueryType, true, out QueryTypeEnum queryType);
-            var payOrder = await dbContext.PayOrder.FindAsync(req.OrderId);
-            PayTypeEnum payType = (PayTypeEnum)payOrder.PayType;
-            ChannelEnum channel = (ChannelEnum)payOrder.Channel;
+            var payOrder = await paymentRepository.OrderQueryLastAsync(req.OrderNo) ?? throw new NetException(500, "无效的订单号");
 
-            var paymentService = paymentServices.FirstOrDefault(service => service.GetType().Name.Equals(channel + "Service",
-                StringComparison.OrdinalIgnoreCase)) ?? throw new NetException(500, $"未实现的通道服务:{channel}Service");
-
-            string response = paymentService.Query(new PayQuery
+            if (payOrder.Channel != ChannelEnum.Unknown)
             {
-                OrderNo = payOrder.Id.ToString(),
-                PayType = payOrder.PayType,
-                QueryType = queryType
-            });
-            return ResultModel.Ok(response);
+                var paymentService = paymentServices.FirstOrDefault(service => service.GetType().Name.Equals(payOrder.Channel + "Service",
+                    StringComparison.OrdinalIgnoreCase));
+
+                var rspClose = paymentService?.OrderClose(new PayQuery
+                {
+                    OrderNo = payOrder.OrderNo.ToString(),
+                    PayType = payOrder.PayType
+                });
+            }
+
+            payOrder.CloseId = req.CloseId;
+            await paymentRepository.OrderCloseAsync(payOrder);
+
+            return ResultModel.Ok(payOrder.Status == (int)PaymentStatus.Closed ? $"订单:{req.OrderNo}已成功关闭！" : $"订单:{req.OrderNo}关闭失败！");
         }
 
         [HttpPost("eventreceive")]
-        public async Task<string> EventReceive([FromForm] B2cNotifyRequest req)
+        public async Task<string> EventReceive([FromForm] B2cNotifyDto req)
         {
-            JsonSerializerOptions serializerOptions = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                IgnoreNullValues = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
-
             Console.WriteLine("callback:" + HttpContext.Request.ContentType);
-            Console.WriteLine($"callback req: {JsonSerializer.Serialize(req, serializerOptions)}");
-            var bizContent = JsonSerializer.Deserialize<B2cNotifyRequest.BizContent>(req.Biz_content);
+            Console.WriteLine($"callback req: {JsonSerializer.Serialize(req, Constants.SerializerOptions)}");
+            var bizContent = JsonSerializer.Deserialize<B2cNotifyDto.BizContent>(req.Biz_content);
+
+            var paymentService = paymentServices.FirstOrDefault(service => service.GetType().Name.Equals("IcbcService",
+                StringComparison.OrdinalIgnoreCase)) ?? throw new NetException(500, $"未实现的通道服务:IcbcService");
 
             // 更新数据库
             long id = long.Parse(bizContent.OutTradeNo);
-            var payOrder = dbContext.PayOrder.Find(id);
+            var payOrder = await paymentRepository.FindAsync<PayOrder>(id);
             if (bizContent.ReturnCode == "0" && payOrder.Status != (int)PaymentStatus.Success)
                 payOrder.Status = (int)PaymentStatus.Success;
             else if (bizContent.ReturnCode == "1" && payOrder.Status != (int)PaymentStatus.Fail)
@@ -126,25 +156,15 @@ namespace Bank.Controllers
                 payOrder.Status = (int)PaymentStatus.Fail;
                 payOrder.ErrMsg = bizContent.ReturnMsg;
             }
-            await dbContext.SaveChangesAsync();
+            await paymentRepository.UpdateAsync(payOrder);
 
             // 返回应答报文
-            B2cNotifyResponse rsp = new B2cNotifyResponse
+            return paymentService.Notify(new PayNotify
             {
-                ResponseBizContent = new B2cNotifyResponse.BizContent
-                {
-                    ReturnCode = 0,
-                    ReturnMsg = "success",
-                    MsgId = bizContent.MsgId
-                },
-                SignType = req.Sign_type
-            };
-
-            string response = JsonSerializer.Serialize(rsp, serializerOptions);
-            RsaUtil rsaUtil = new RsaUtil(privateKey, null);
-            rsp.Sign = rsaUtil.Sign(response);
-
-            return JsonSerializer.Serialize(rsp, serializerOptions); ;
+                PayType = PayTypeEnum.WechatPay,
+                Channel = ChannelEnum.ICBC,
+                MsgId = bizContent.MsgId
+            });
         }
     }
 }

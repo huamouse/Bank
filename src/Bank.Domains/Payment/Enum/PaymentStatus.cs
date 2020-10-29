@@ -13,6 +13,8 @@ namespace Bank.Domains.Payment
         [Description("支付成功")]
         Success,
         [Description("交易关闭")]
-        Closed = 9
+        Closed = 9,
+        [Description("交易取消")]
+        Canceled
     }
 }
