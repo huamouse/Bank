@@ -1,5 +1,4 @@
-﻿using Icbc;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Icbc.Business
 {
@@ -66,15 +65,15 @@ namespace Icbc.Business
         public string DecrFlag { get; set; }
 
         [JsonPropertyName("open_id")]
-        public object OpenId { get; set; }
+        public string OpenId { get; set; }
 
         [JsonPropertyName("pay_type")]
-        public object PayType { get; set; }
+        public string PayType { get; set; }
 
         [JsonPropertyName("card_kind")]
-        public object CardKind { get; set; }
+        public string CardKind { get; set; }
 
         [JsonPropertyName("access_type")]
-        public object AccessType { get; set; }
+        public string AccessType { get; set; }
     }
 }

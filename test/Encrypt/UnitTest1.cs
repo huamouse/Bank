@@ -1,6 +1,6 @@
+Ôªøusing System;
 using CPTech.Security;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace Encrypt.Test
 {
@@ -17,51 +17,74 @@ namespace Encrypt.Test
         {
             string privateKey = "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDc2I9TZiwiMBQVB9vtDlPU3PJZSC4/lKWRhewbvQihA7yKYg3PyGWBQjvhwALAM2NswOXqDnQkDkxCP4LNTGNr0CuandJJDNO9MWNyT/RdXPov8kItKW8GBcpsVdGavdxLkIOtqL8WqzzDNbN+2iR/bpaopecIn94Zt8VeJa24UA90knHoA0FgsDILlWamajbJFl7hqfK0/ZxaECWsX4Aej1gnaLgfnRuOtFFVgdn4mgwUTk8E5Lggy0n8LdpCLXSnJ6F98ggeZUptE1aOsaa1OwdxXPQ+cpdm1Doab6wkJ9K0aOqqm0X6W9jLsZtGVw9IcqwOkpL9nOrfJKaw1BnbAgMBAAECggEAP91AVVXOnXRZ2lsTdlIWXBAo5TjCZxCNcK/Rv5PC0w1JkJsac2P4NpD40Ce+o+Y4clK2KiFT5LldxCqpoMTeW2cvtN6+2PEkqimGIKCOghFJKGReTsEUoiE6kGmg26bb9d4stiN+XwfV4n29Eony1Ace+lY/oXbZu4YxRTCQNCQpBP3D/qhMd7+JESIcawDxC9qW5w5r5CsBQIBEtITuqO4vbgWY049k/3uJrfN52HI+KQjOQerlALs7zNucRYpwCTbqn5JPwOADVxZI74c0jh7h73GeSfqBzwtorFAovNVzEn5UjmP5PcfAdt1iPEFj4QN+XosQ9KKP7pijsII0wQKBgQD9pysypMHzdWg/0dCF+DXa2jLp2Ach1QxKsgzv8BOBj23COt+ookxuDGGKcTDnpb+4CEeT59XfJkR1HMY6cILMqx/rtB2qIbdwmS3LTQu6qCnIfOywJQnOGdrhpY5r3/K8F5PewMyNfliJOjzhJdM8Tqzpj5zE3+jiG/H3m5VqlQKBgQDe4647GLqCHNPgRzvjNHQrWSxBCZBnzZZB1PIsfE0/iJT90r+lye2vXH6GymtstJga1nD3RHw4rElIY+W3yxedq1JUViLUYWWACjrpu4prRtWYPK8wYh/mrDbx6LYsiBhYULy+zQ5EL33E8VYhaZ/PfDZegrkUr1LutCtpsP3GrwKBgQCEDa7Am+PZYqtWZl4gEPvAp05QTcZQx8Cxdoajt6IAFnK25r2f5nbR6CIz1//06WapYa4aA11l4l9LdSKCNCb0dLaWmFvFQe5lcWnU6JSNpZSzKs5yWaYEJZO9W9qMsLeHUuMJ2efkVf2z25zsPiv9vpvosHqWSFfOt2u+U8JzDQKBgQCihM1D1fIYcUCkZgxqzJJwESNNgNXEeok3EzhJ65C/5K0Orp6DGkuu8/hl/C58IupNl1LjWRJimG0O1ZhofTOJCaSMTgozZZkG1W7DgrWZJxsTWBw9YS71mViu5wn+SnXF34jgbtAaM6627WnqDwQx29Yg75xYUsZbuw90j1NbjQKBgQCgeMNvF6zasDKaCMNwwQ19TeYgJUoYyM3Mlh7zm15NcjEKdsdrNyLzKrdW5XAyAevEBbG6p2sLoxiEXlZCXrDIFx9i2dnBN9Qkb4ZXMlgfZFawQTidalj3Z/G0qriWeyUlk7IAUbyVz40o9m2djG7qc6xEyKVAUvvz9pFJ1fdl7Q==";
             string publicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3NiPU2YsIjAUFQfb7Q5T1NzyWUguP5SlkYXsG70IoQO8imINz8hlgUI74cACwDNjbMDl6g50JA5MQj+CzUxja9Armp3SSQzTvTFjck/0XVz6L/JCLSlvBgXKbFXRmr3cS5CDrai/Fqs8wzWzftokf26WqKXnCJ/eGbfFXiWtuFAPdJJx6ANBYLAyC5Vmpmo2yRZe4anytP2cWhAlrF+AHo9YJ2i4H50bjrRRVYHZ+JoMFE5PBOS4IMtJ/C3aQi10pyehffIIHmVKbRNWjrGmtTsHcVz0PnKXZtQ6Gm+sJCfStGjqqptF+lvYy7GbRlcPSHKsDpKS/Zzq3ySmsNQZ2wIDAQAB";
-      
+
             //string publicKey =
             //    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoQh0wEqx/R2H1v00IU12Oc30fosRC/frhH89L6G+fzeaqI19MYQhEPMU13wpeqRONCUta+2iC1sgCNQ9qGGf19yGdZUfueaB1Nu9rdueQKXgVurGHJ+5N71UFm+OP1XcnFUCK4wT5d7ZIifXxuqLehP9Ts6sNjhVfa+yU+VjF5HoIe69OJEPo7OxRZcRTe17khc93Ic+PfyqswQJJlY/bgpcLJQnM+QuHmxNtF7/FpAx9YEQsShsGpVo7JaKgLo+s6AFoJ4QldQKir2vbN9vcKRbG3piElPilWDpjXQkOJZhUloh/jd7QrKFimZFldJ1r6Q59QYUyGKZARUe0KZpMQIDAQAB";
-            ////2048 ÀΩ‘ø
+            ////2048 ÁßÅÈí•
             //string privateKey =
             //    "MIIEpAIBAAKCAQEAoQh0wEqx/R2H1v00IU12Oc30fosRC/frhH89L6G+fzeaqI19MYQhEPMU13wpeqRONCUta+2iC1sgCNQ9qGGf19yGdZUfueaB1Nu9rdueQKXgVurGHJ+5N71UFm+OP1XcnFUCK4wT5d7ZIifXxuqLehP9Ts6sNjhVfa+yU+VjF5HoIe69OJEPo7OxRZcRTe17khc93Ic+PfyqswQJJlY/bgpcLJQnM+QuHmxNtF7/FpAx9YEQsShsGpVo7JaKgLo+s6AFoJ4QldQKir2vbN9vcKRbG3piElPilWDpjXQkOJZhUloh/jd7QrKFimZFldJ1r6Q59QYUyGKZARUe0KZpMQIDAQABAoIBAQCRZLUlOUvjIVqYvhznRK1OG6p45s8JY1r+UnPIId2Bt46oSLeUkZvZVeCnfq9k0Bzb8AVGwVPhtPEDh73z3dEYcT/lwjLXAkyPB6gG5ZfI/vvC/k7JYV01+neFmktw2/FIJWjEMMF2dvLNZ/Pm4bX1Dz9SfD/45Hwr8wqrvRzvFZsj5qqOxv9RPAudOYwCwZskKp/GF+L+3Ycod1Wu98imzMZUH+L5dQuDGg3kvf3ljIAegTPoqYBg0imNPYY/EGoFKnbxlK5S5/5uAFb16dGJqAz3XQCz9Is/IWrOTu0etteqV2Ncs8uqPdjed+b0j8CMsr4U1xjwPQ8WwdaJtTkRAoGBANAndgiGZkCVcc9975/AYdgFp35W6D+hGQAZlL6DmnucUFdXbWa/x2rTSEXlkvgk9X/PxOptUYsLJkzysTgfDywZwuIXLm9B3oNmv3bVgPXsgDsvDfaHYCgz0nHK6NSrX2AeX3yO/dFuoZsuk+J+UyRigMqYj0wjmxUlqj183hinAoGBAMYMOBgF77OXRII7GAuEut/nBeh2sBrgyzR7FmJMs5kvRh6Ck8wp3ysgMvX4lxh1ep8iCw1R2cguqNATr1klOdsCTOE9RrhuvOp3JrYzuIAK6MpH/uBICy4w1rW2+gQySsHcH40r+tNaTFQ7dQ1tef//iy/IW8v8i0t+csztE1JnAoGABdtWYt8FOYP688+jUmdjWWSvVcq0NjYeMfaGTOX/DsNTL2HyXhW/Uq4nNnBDNmAz2CjMbZwt0y+5ICkj+2REVQVUinAEinTcAe5+LKXNPx4sbX3hcrJUbk0m+rSu4G0B/f5cyXBsi9wFCAzDdHgBduCepxSr04Sc9Hde1uQQi7kCgYB0U20HP0Vh+TG2RLuE2HtjVDD2L/CUeQEiXEHzjxXWnhvTg+MIAnggvpLwQwmMxkQ2ACr5sd/3YuCpB0bxV5o594nsqq9FWVYBaecFEjAGlWHSnqMoXWijwu/6X/VOTbP3VjH6G6ECT4GR4DKKpokIQrMgZ9DzaezvdOA9WesFdQKBgQCWfeOQTitRJ0NZACFUn3Fs3Rvgc9eN9YSWj4RtqkmGPMPvguWo+SKhlk3IbYjrRBc5WVOdoX8JXb2/+nAGhPCuUZckWVmZe5pMSr4EkNQdYeY8kOXGSjoTOUH34ZdKeS+e399BkBWIiXUejX/Srln0H4KoHnTWgxwNpTsBCgXu8Q==";
             {
+                string strTime = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
                 var rsa = new RsaUtil(privateKey, publicKey);
                 //rsa.RsaType = RSAType.RSA;
                 //rsa.RsaKeyType = RSAKeyType.PKCS1;
 
-                string str = "≤©øÕ‘∞ http://www.cnblogs.com/";
-                Console.WriteLine("‘≠ º◊÷∑˚¥Æ£∫" + str);
-                //º”√‹
+                string str = "ÂçöÂÆ¢Âõ≠ http://www.cnblogs.com/";
+                Console.WriteLine("ÂéüÂßãÂ≠óÁ¨¶‰∏≤Ôºö" + str);
+                //Âä†ÂØÜ
                 string enStr = rsa.Encrypt(str);
-                Console.WriteLine("º”√‹◊÷∑˚¥Æ£∫" + enStr);
-                //Ω‚√‹
+                Console.WriteLine("Âä†ÂØÜÂ≠óÁ¨¶‰∏≤Ôºö" + enStr);
+                //Ëß£ÂØÜ
                 string deStr = rsa.Decrypt(enStr);
-                Console.WriteLine("Ω‚√‹◊÷∑˚¥Æ£∫" + deStr);
+                Console.WriteLine("Ëß£ÂØÜÂ≠óÁ¨¶‰∏≤Ôºö" + deStr);
                 Assert.AreEqual(str, deStr);
-                //ÀΩ‘ø«©√˚
+                //ÁßÅÈí•Á≠æÂêç
                 string signStr = rsa.Sign(str);
-                Console.WriteLine("◊÷∑˚¥Æ«©√˚£∫" + signStr);
-                //π´‘ø—È÷§«©√˚
+                Console.WriteLine("Â≠óÁ¨¶‰∏≤Á≠æÂêçÔºö" + signStr);
+                //ÂÖ¨Èí•È™åËØÅÁ≠æÂêç
                 Assert.IsTrue(rsa.Verify(str, signStr));
             }
             {
                 var rsa = new RsaUtil(MY_PRIVATE_KEY, APIGW_PUBLIC_KEY);
 
-                string str = "≤©øÕ‘∞ http://www.cnblogs.com/";
-                Console.WriteLine("‘≠ º◊÷∑˚¥Æ£∫" + str);
-                //º”√‹
+                string str = "ÂçöÂÆ¢Âõ≠ http://www.cnblogs.com/";
+                Console.WriteLine("ÂéüÂßãÂ≠óÁ¨¶‰∏≤Ôºö" + str);
+                //Âä†ÂØÜ
                 string enStr = rsa.Encrypt(str);
-                Console.WriteLine("º”√‹◊÷∑˚¥Æ£∫" + enStr);
-                //Ω‚√‹
+                Console.WriteLine("Âä†ÂØÜÂ≠óÁ¨¶‰∏≤Ôºö" + enStr);
+                //Ëß£ÂØÜ
                 string deStr = rsa.Decrypt(enStr);
-                Console.WriteLine("Ω‚√‹◊÷∑˚¥Æ£∫" + deStr);
+                Console.WriteLine("Ëß£ÂØÜÂ≠óÁ¨¶‰∏≤Ôºö" + deStr);
                 Assert.AreEqual(str, deStr);
-                //ÀΩ‘ø«©√˚
+                //ÁßÅÈí•Á≠æÂêç
                 string signStr = rsa.Sign(str);
-                Console.WriteLine("◊÷∑˚¥Æ«©√˚£∫" + signStr);
-                //π´‘ø—È÷§«©√˚
+                Console.WriteLine("Â≠óÁ¨¶‰∏≤Á≠æÂêçÔºö" + signStr);
+                //ÂÖ¨Èí•È™åËØÅÁ≠æÂêç
                 Assert.IsTrue(rsa.Verify(str, signStr));
             }
 
+        }
+
+        [TestMethod]
+        public void CCBTest()
+        {
+            //ÂèÇ‰∏éÈ™åÁ≠æÁöÑÁ≠æÂêç‰∏≤	
+            //string sign = "7825300171ec984f7eae79c13e5e168cca8085dfe71100c55fb43d72533703e1fa4ada901eed708f4ec2147ea2e1398cb8db06affea59f8ad565e66be60d9722e8d0a7a3bdef37907b44e7dba62eb8a87d0a00e13c0eda2a1833b45e81c4449262ca3ce26408557dc9e949934a8068b2262e6092113aa9dade1e07ec5ffeb3ad";
+
+            ////ÂèÇ‰∏éÈ™åÁ≠æÁöÑÂ≠óÁ¨¶‰∏≤Âéü‰∏≤Ôºå‰∏çÂê´Â≠óÊÆµÂêçÁß∞ÔºåÊåâÊé•Âè£Â≠óÊÆµÊ¨°Â∫èÊãºÊé•ÂÄº
+            //string str = "100000037121001000210003181J00#0000000000000000133101983679050029385ÂÖ¨Âè∏‰∏â1.112N201201171428‰∏äÊµ∑Â∏Ç";
+
+            ////ÂèÇ‰∏éÈ™åÁ≠æÁöÑÂÖ¨Èí•
+            //string publicKey = "30819c300d06092a864886f70d010101050003818a003081860281807d1c5a0b3ab7ea6c928894baa5236220c8a949ac9e3e6408f6bb0859012e5e720cb78cbb1fc5521b0b21d7199a63ac0dad883d6243e90a737d627bfab3797f3d70a3dbfffa56b233277d3c1553211c768cdc255f19b5d43552d1a21e9824d9c7962d3679edadcc69efcdec9c4f5366a755dd96b256b70d563d8e997e0b48ee5b020111";
+
+            //var ccbSign = new CCBSign
+            //{
+            //    Publickey = publicKey,
+            //    Encoding = Encoding.GetEncoding("GBK")
+            //};
+            //bool isVerify = ccbSign.Verify(str, sign);
+
+            //Assert.IsTrue(isVerify);
         }
     }
 }

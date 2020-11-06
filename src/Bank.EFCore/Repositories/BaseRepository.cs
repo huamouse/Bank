@@ -1,6 +1,6 @@
-﻿using Bank.Domains.Repositoies;
+﻿using System.Threading.Tasks;
+using Bank.Domains.Repositoies;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
 namespace Bank.EFCore.Repositories
 {
@@ -16,6 +16,12 @@ namespace Bank.EFCore.Repositories
         public ValueTask<TEntity> FindAsync<TEntity>(params object[] keyValues) where TEntity : class
         {
             return dbContext.FindAsync<TEntity>(keyValues);
+        }
+
+        public Task<int> AddAsync<TEntity>(TEntity entity) where TEntity : class
+        {
+            dbContext.Add(entity);
+            return dbContext.SaveChangesAsync();
         }
 
         public Task<int> UpdateAsync<TEntity>(TEntity entity) where TEntity : class

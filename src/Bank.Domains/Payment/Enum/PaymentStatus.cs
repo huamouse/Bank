@@ -5,7 +5,7 @@ namespace Bank.Domains.Payment
     public enum PaymentStatus
     {
         [Description("未支付")]
-        Unpaid,
+        Unknown,
         [Description("支付中")]
         Paying,
         [Description("支付失败")]

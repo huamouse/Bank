@@ -1,5 +1,6 @@
-﻿using Bank.Domains.Repositoies;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Bank.Domains.Payment.Entities;
+using Bank.Domains.Repositoies;
 
 namespace Bank.Domains.Payment
 {
@@ -9,5 +10,8 @@ namespace Bank.Domains.Payment
         Task<int> OrderCloseAsync(PayOrder order);
         Task<int> OrderCancelAsync(PayOrder order);
         Task<PayOrder> OrderQueryLastAsync(long orderNo);
+        Task<PayNotify> SelectNotifyAsync(string tag);
+        Task<int> AddPayOrderLogAsync(PayOrderLog payOrderLog);
+        Task<int> UpdatePayOrderLogAsync(PayOrderLog payOrderLog);
     }
 }

@@ -1,7 +1,6 @@
 ﻿using CPTech.Core;
 using CPTech.Models;
 using Microsoft.AspNetCore.Mvc;
-//using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;

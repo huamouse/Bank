@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace Bank.Domains.Payment
+﻿namespace Bank.Domains.Payment
 {
     /// <summary>
     /// 支付通道
@@ -8,7 +6,7 @@ namespace Bank.Domains.Payment
     public enum ChannelEnum
     {
         Unknown = 0,
-        ICBC = 0,
+        ICBC,
         ABC,
         BOC,
         CCB

@@ -1,4 +1,5 @@
-﻿using CPTech.Core;
+﻿using System;
+using System.Threading.Tasks;
 using CPTech.Models;
 using CPTech.Payment.WeChatPay;
 using CPTech.Payment.WeChatPay.Notify;
@@ -7,8 +8,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Threading.Tasks;
 
 namespace HouseLease.Controllers
 {

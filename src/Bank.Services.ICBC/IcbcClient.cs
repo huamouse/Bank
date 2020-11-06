@@ -1,16 +1,15 @@
-﻿using CPTech.Security;
+﻿using CPTech.Core;
+using CPTech.Security;
 using Icbc.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
-using System.Web;
 
 namespace Icbc
 {
-    public class IcbcClient// : IcbcClient
+    public class IcbcClient
     {
         protected string appId;
         protected string privateKey;
@@ -37,24 +36,22 @@ namespace Icbc
         public IcbcResponse Execute<T>(IcbcRequest<T> request, string msgId, string appAuthToken) where T : IcbcResponse
         {
             Dictionary<string, string> param = PrepareParams(request, msgId, appAuthToken);
-            string respStr;
+            string rspStr;
 
             switch (request.Method)
             {
                 case HttpMethod.Get:
-                    respStr = httpClient.GetStringAsync(request.ServiceUrl).GetAwaiter().GetResult();
+                    rspStr = httpClient.GetStringAsync(request.ServiceUrl).GetAwaiter().GetResult();
                     break;
                 case HttpMethod.Post:
                     HttpContent httpContent = new FormUrlEncodedContent(param);
-                    respStr = httpClient.PostAsync(request.ServiceUrl, httpContent).Result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    rspStr = httpClient.PostAsync(request.ServiceUrl, httpContent).Result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
                     break;
                 default:
                     throw new Exception("only support GET or POST, method: " + request.Method.ToString());
             }
 
-            IcbcResponse response = ParseJsonWithIcbcSign(request, respStr) ?? throw new Exception("response is null.");
-
-            return response;
+            return ParseJsonWithIcbcSign(request, rspStr) ?? throw new Exception("response is null.");
         }
 
         protected Dictionary<string, string> PrepareParams<T>(IcbcRequest<T> request, string msgId, string appAuthToken) where T : IcbcResponse
@@ -104,12 +101,7 @@ namespace Icbc
 
             if (string.Equals(IcbcConstants.FORMAT_JSON, format))
             {
-                return JsonSerializer.Serialize(request.Content, request.Content.GetType(), new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    IgnoreNullValues = true,
-                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                });
+                return JsonSerializer.Serialize(request.Content, request.Content.GetType(), Constants.JsonSerializerOption);
             }
 
             return null;
@@ -139,7 +131,7 @@ namespace Icbc
             }
 
             //反序列化并返回
-            return JsonSerializer.Deserialize<T>(respBizContentStr);
+            return JsonSerializer.Deserialize<T>(respBizContentStr, Constants.JsonSerializerOption);
         }
     }
 }

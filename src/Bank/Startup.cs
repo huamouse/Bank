@@ -1,22 +1,23 @@
+﻿using System;
+using System.Text;
+using System.Text.Json;
 using Bank.Domains.Payment;
 using Bank.EFCore;
 using Bank.EFCore.Repositories;
-using Bank.ICBC.Config;
-using Bank.Services;
 using CPTech.Middleware;
 using CPTech.ModelBinding;
 using CPTech.Models;
+using Icbc.Services;
+using Icbc.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Text;
-using System.Text.Json;
 
 namespace Bank
 {
@@ -69,8 +70,8 @@ namespace Bank
                 };
             });
 
-            services.AddDbContext<SqlDbContext>(option => option.UseLoggerFactory(loggerFactory).UseSqlServer(configuration.GetConnectionString("SqlServer")));
-            //services.AddDbContext<SqlDbContext>(option => option.UseMySql(configuration.GetConnectionString("MySql")));
+            //services.AddDbContext<SqlDbContext>(option => option.UseLoggerFactory(loggerFactory).UseSqlServer(configuration.GetConnectionString("SqlServer")));
+            services.AddDbContext<SqlDbContext>(option => option.UseMySql(configuration.GetConnectionString("MySql")));
 
             //services.AddScoped<IUserRepository, UserRepository>();
             services.AddHttpClient();
@@ -81,6 +82,25 @@ namespace Bank
             services.AddControllers(options =>
             {
                 options.ModelBinderProviders.Insert(0, new TupleModelBinderProvider());
+
+                //options.Filters.Add(typeof(SampleAsyncActionFilter));
+
+                Console.WriteLine("Default output formatters:");
+                foreach (IOutputFormatter formatter in options.OutputFormatters)
+                {
+                    var mediaFormatter = formatter as OutputFormatter;
+
+                    if (mediaFormatter == null)
+                    {
+                        Console.WriteLine($"  {formatter.GetType().Name}");
+                    }
+                    else // OutputFormatter class has SupportedMediaType
+                    {
+                        Console.WriteLine("  {0}, Media types: {1}",
+                            arg0: mediaFormatter.GetType().Name,
+                            arg1: string.Join(", ", mediaFormatter.SupportedMediaTypes));
+                    }
+                }
             }).AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;

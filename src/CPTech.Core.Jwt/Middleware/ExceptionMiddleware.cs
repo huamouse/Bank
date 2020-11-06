@@ -1,11 +1,11 @@
-﻿using CPTech.Core;
+﻿using System;
+using System.Text.Json;
+using System.Threading.Tasks;
+using CPTech.Core;
 using CPTech.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace CPTech.Middleware
 {
@@ -64,7 +64,7 @@ namespace CPTech.Middleware
 
         private string SerializerErrorMessage(int code, string message)
         {
-            return JsonSerializer.Serialize(ResultModel.Error(code, message), Constants.SerializerOptions);
+            return JsonSerializer.Serialize(ResultModel.Error(code, message), Constants.JsonSerializerOption);
         }
     }
     #endregion

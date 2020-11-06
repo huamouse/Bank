@@ -5,7 +5,7 @@ namespace CPTech.Core
 {
     public class Constants
     {
-        public static JsonSerializerOptions SerializerOptions = new JsonSerializerOptions
+        public static JsonSerializerOptions JsonSerializerOption = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             IgnoreNullValues = true,

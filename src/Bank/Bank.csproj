@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
     <AssemblyName>bank</AssemblyName>
-    <UserSecretsId>e8002829-35e7-4cfd-8d4e-0c13a7132f1e</UserSecretsId>
+    <UserSecretsId>60a8ecb7-2814-4d72-9e0d-553bb5fda043</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +22,5 @@
     <ProjectReference Include="..\CPTech.Core.Jwt\CPTech.Core.Jwt.csproj" />
     <ProjectReference Include="..\CPTech.Core\CPTech.Core.csproj" />
   </ItemGroup>
-
 
 </Project>

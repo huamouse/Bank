@@ -1,23 +1,20 @@
 ﻿using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using Bank.Domains.Enities;
 
-namespace Bank.Domains.Payment
+namespace Bank.Domains.Payment.Entities
 {
-    public class PayOrder
+    public class PayOrder : BaseEntity
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; set; }
-
         public long OrderNo { get; set; }
 
-        [MaxLength(20)]
+        [MaxLength(30)]
         public string FlowNo { get; set; }
 
         [MaxLength(20)]
         [Description("来源平台标识")]
-        public string Source { get; set; }
+        public string Tag { get; set; }
 
         public PayTypeEnum PayType { get; set; }
 
@@ -45,23 +42,15 @@ namespace Bank.Domains.Payment
         public string Reserve { get; set; }
 
         [Description("支付时间")]
-        public DateTime PayTime { get; set; }
+        public DateTime? PayTime { get; set; }
 
         [Description("交易完成时间")]
-        public DateTime EndTime { get; set; }
+        public DateTime? EndTime { get; set; }
 
-        [MaxLength(50)]
-        public string CreatorId { get; set; }
-
-        public DateTime CreationTime { get; set; }
-
-        [MaxLength(50)]
-        public string CloseId { get; set; }
+        public long? CloseId { get; set; }
 
         [Description("交易关闭时间")]
-        public DateTime CloseTime { get; set; }
-
-        public bool IsDeleted { get; set; }
+        public DateTime? CloseTime { get; set; }
 
         [MaxLength(200)]
         public string ErrMsg { get; set; }

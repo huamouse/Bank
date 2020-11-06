@@ -1,29 +1,32 @@
-﻿using Bank.Domains.Payment;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System;
+using Bank.Domains.Payment;
+using Bank.Domains.Payment.Services;
 
 namespace Bank.Services
 {
     public class CcbService : IPaymentService
     {
-        public string Notify(PayNotify payNotify)
+        public string OrderClose(OrderQueryReq payQuery)
         {
             throw new NotImplementedException();
         }
 
-        public string OrderClose(PayQuery payQuery)
+        public string OrderNotify(OrderNotifyReq payNotify)
         {
             throw new NotImplementedException();
         }
 
-        public string OrderPay(Payment payment)
+        public BasePayRsp OrderPay(OrderPayReq payment)
         {
             throw new NotImplementedException();
         }
 
-        public string OrderQuery(PayQuery payQuery)
+        public BasePayRsp OrderQuery(OrderQueryReq payQuery)
+        {
+            throw new NotImplementedException();
+        }
+
+        OrderQueryRsp IPaymentService.OrderQuery(OrderQueryReq payQuery)
         {
             throw new NotImplementedException();
         }
