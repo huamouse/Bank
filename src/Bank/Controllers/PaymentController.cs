@@ -49,6 +49,23 @@ namespace Bank.Controllers
         {
             logger.LogInformation($"create order req: {JsonSerializer.Serialize(req, Constants.JsonSerializerOption)}");
 
+            if (req.OldOrderId != null)
+            {
+                PayOrder payOrderCancel = await paymentRepository.OrderQueryLastAsync(req.OldOrderId.Value);
+
+                var paymentService = GetPaymentService(payOrderCancel.Channel);
+                var rspClose = paymentService.OrderClose(new OrderQueryReq
+                {
+                    OrderNo = payOrderCancel.OrderNo.ToString(),
+                    PayType = payOrderCancel.PayType,
+                    Payee = payOrderCancel.Payee
+                });
+
+                payOrderCancel.CloseId = req.CreatorId;
+                payOrderCancel.CloseTime = DateTime.Now;
+                await paymentRepository.OrderCloseAsync(payOrderCancel);
+            }
+
             PayOrder payOrder = new()
             {
                 OrderNo = SnowFlake.NextId(),
@@ -70,36 +87,29 @@ namespace Bank.Controllers
         public async Task<ResultModel> OrderPay(OrderPayDto req)
         {
             var payOrder = await paymentRepository.FindAsync<PayOrder>(req.OrderId) ?? throw new NetException(500, "无效的订单号");
-            if (payOrder.Status == (int)PaymentStatus.Success) throw new NetException(500, "已支付订单禁止重复支付！");
+
+            switch ((PaymentStatus)payOrder.Status)
+            {
+                case PaymentStatus.Canceled:
+                    throw new NetException(500, "该订单已取消，禁止支付！");
+                case PaymentStatus.Closed:
+                    throw new NetException(500, "该订单已关闭，禁止支付！");
+                case PaymentStatus.Success:
+                    throw new NetException(500, "已支付订单禁止重复支付！");
+            }
 
             payOrder.PayType = Enum.Parse<PayTypeEnum>(req.PayType, true);
             payOrder.Channel = Enum.Parse<ChannelEnum>(req.Channel, true);
             var paymentService = this.GetPaymentService(payOrder.Channel);
 
             // 取消旧订单
-            if (payOrder.PayTime != null)
+            if (payOrder.Status == (int)PaymentStatus.Paying && DateTime.Now > payOrder.PayTime.Value.AddMinutes(15))
             {
-                OrderQueryReq orderQueryReq = new()
-                {
-                    OrderNo = payOrder.OrderNo.ToString(),
-                    PayType = payOrder.PayType,
-                    Payee = payOrder.Payee
-                };
+                payOrder.Status = (int)PaymentStatus.Closed;
+                payOrder.CloseTime = DateTime.Now;
+                await paymentRepository.UpdateAsync(payOrder);
 
-                PayOrderLog closeOrderLog = new()
-                {
-                    PayType = payOrder.PayType,
-                    Channel = payOrder.Channel,
-                    Request = "OrderClose:" + JsonSerializer.Serialize(orderQueryReq, Constants.JsonSerializerOption)
-                };
-                await paymentRepository.AddPayOrderLogAsync(closeOrderLog);
-
-                var rspClose = paymentService.OrderClose(orderQueryReq);
-
-                closeOrderLog.Response = rspClose;
-                await paymentRepository.UpdateAsync(closeOrderLog);
-
-                payOrder.OrderNo = SnowFlake.NextId();
+                throw new NetException(500, "订单已超时，禁止支付！");
             }
             else
                 payOrder.PayTime = DateTime.Now;
@@ -181,8 +191,8 @@ namespace Bank.Controllers
             };
         }
 
-        [HttpPost("orderClose")]
-        public async Task<ResultModel> OrderClose((long OrderNo, long? ClosersId) req)
+        [HttpPost("orderCancel")]
+        public async Task<ResultModel> OrderCancel((long OrderNo, long? ClosersId) req)
         {
             var payOrder = await paymentRepository.OrderQueryLastAsync(req.OrderNo) ?? throw new NetException(500, "无效的订单号");
 

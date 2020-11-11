@@ -18,9 +18,12 @@ namespace Bank.Domains.Payment
 
         [Description("支付事项")]
         [MaxLength(100)]
+        [Required(ErrorMessage = "{0}是必填项")]
         public string Note { get; set; }
 
         public long? CreatorId { get; set; }
+
+        public long? OldOrderId { get; set; }
 
         [Description("物品清单")]
         public List<Goods> GoodsList { get; set; }

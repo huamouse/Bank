@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Bank.Domains.Payment;
 using Bank.EFCore;
 using Bank.EFCore.Repositories;
@@ -71,7 +72,7 @@ namespace Bank
             });
 
             //services.AddDbContext<SqlDbContext>(option => option.UseLoggerFactory(loggerFactory).UseSqlServer(configuration.GetConnectionString("SqlServer")));
-            services.AddDbContext<SqlDbContext>(option => option.UseMySql(configuration.GetConnectionString("MySql")));
+            services.AddDbContext<SqlDbContext>(option => option.UseMySQL(configuration.GetConnectionString("MySql")));
 
             //services.AddScoped<IUserRepository, UserRepository>();
             services.AddHttpClient();
@@ -104,6 +105,7 @@ namespace Bank
             }).AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString;
                 options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
             });
         }

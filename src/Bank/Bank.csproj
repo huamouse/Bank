@@ -1,24 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <LangVersion>9.0</LangVersion>
+    <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>bank</AssemblyName>
     <UserSecretsId>60a8ecb7-2814-4d72-9e0d-553bb5fda043</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.9">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Bank.Domains\Bank.Domains.csproj" />
     <ProjectReference Include="..\Bank.EFCore\Bank.EFCore.csproj" />
-    <ProjectReference Include="..\Bank.Services.CCB\Bank.Services.CCB.csproj" />
-    <ProjectReference Include="..\Bank.Services.ICBC\Bank.Services.ICBC.csproj" />
+    <ProjectReference Include="..\Bank.Services.Ccb\Bank.Services.Ccb.csproj" />
+    <ProjectReference Include="..\Bank.Services.Icbc\Bank.Services.Icbc.csproj" />
     <ProjectReference Include="..\CPTech.Core.Jwt\CPTech.Core.Jwt.csproj" />
     <ProjectReference Include="..\CPTech.Core\CPTech.Core.csproj" />
   </ItemGroup>

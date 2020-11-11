@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CPTech.Core.Jwt", "src\CPTe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bank.EFCore.SqlServer", "src\Bank.EFCore.SqlServer\Bank.EFCore.SqlServer.csproj", "{662A66A3-913E-4BFA-BA72-5B806E6845F4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bank.Services.ICBC", "src\Bank.Services.ICBC\Bank.Services.ICBC.csproj", "{5E7F880B-58FA-4532-99CD-7A7DA7432E06}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bank.Services.Icbc", "src\Bank.Services.Icbc\Bank.Services.Icbc.csproj", "{5E7F880B-58FA-4532-99CD-7A7DA7432E06}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bank.Domains", "src\Bank.Domains\Bank.Domains.csproj", "{EDA98ADE-376B-4410-8BC5-E6536BF0838C}"
 EndProject
@@ -25,9 +25,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CPTech.Security", "src\CPTe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bank.EFCore", "src\Bank.EFCore\Bank.EFCore.csproj", "{D7BFE59B-0142-4CE9-8E83-8F189DD42619}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPTech.Core", "src\CPTech.Core\CPTech.Core.csproj", "{3B0D2A2E-DDCF-4A64-B525-7A9D79024032}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CPTech.Core", "src\CPTech.Core\CPTech.Core.csproj", "{3B0D2A2E-DDCF-4A64-B525-7A9D79024032}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bank.Services.CCB", "src\Bank.Services.CCB\Bank.Services.CCB.csproj", "{5C0CD01A-7F44-47C7-ACF7-71FB4A08C2B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bank.Services.Ccb", "src\Bank.Services.Ccb\Bank.Services.Ccb.csproj", "{5C0CD01A-7F44-47C7-ACF7-71FB4A08C2B1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

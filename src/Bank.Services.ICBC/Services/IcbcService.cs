@@ -279,7 +279,7 @@ namespace Icbc.Services
                 SumPayamt = orderPayReq.Amount.ToString(),
                 OrderRemark = orderPayReq.Note,
                 RceiptRemark = orderPayReq.Note,
-                SubmitTime = "20201130" + DateTime.Now.ToString("HHmmss"),
+                SubmitTime = "20201201" + DateTime.Now.ToString("HHmmss"),
                 ReturnUrl = options.ReturnUrl,
                 CallbackUrl = options.NotifyUrl,
                 IdentityMode = "0",
