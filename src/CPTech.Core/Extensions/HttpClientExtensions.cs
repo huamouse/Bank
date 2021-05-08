@@ -2,7 +2,7 @@
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
-namespace Cptech.Extension
+namespace CPTech.Extension
 {
     public static class HttpClientExtensions
     {
@@ -14,7 +14,7 @@ namespace Cptech.Extension
 
         public static async Task<TOut> PostJsonAsync<TIn, TOut>(this HttpClient client, string url, TIn data)
         {
-            var response = await client.PostAsync(url, JsonContent.Create<TIn>(data));
+            var response = await client.PostAsync(url, JsonContent.Create(data));
             return await response.Content.ReadFromJsonAsync<TOut>();
         }
     }

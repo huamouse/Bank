@@ -1,13 +1,14 @@
-﻿using System;
+﻿using CPTech.EFCore.Entities;
+using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using Bank.Domains.Enities;
 
 namespace Bank.Domains.Payment.Entities
 {
     public class PayOrder : BaseEntity
     {
-        public long OrderNo { get; set; }
+        [MaxLength(30)]
+        public string OrderNo { get; set; }
 
         [MaxLength(30)]
         public string FlowNo { get; set; }
@@ -20,13 +21,21 @@ namespace Bank.Domains.Payment.Entities
 
         public ChannelEnum Channel { get; set; }
 
-        [MaxLength(50)]
-        [Description("付款方")]
+        [MaxLength(30)]
+        [Description("付款方账号")]
         public string Payer { get; set; }
 
         [MaxLength(50)]
-        [Description("收款方")]
+        [Description("付款方户名")]
+        public string PayerName { get; set; }
+
+        [MaxLength(30)]
+        [Description("收款方账号")]
         public string Payee { get; set; }
+
+        [MaxLength(50)]
+        [Description("收款方户号")]
+        public string PayeeName { get; set; }
 
         public long Amount { get; set; }
 

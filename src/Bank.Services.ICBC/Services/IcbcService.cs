@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text.Json;
-using Bank.Domains.Payment;
+﻿using Bank.Domains.Payment;
 using Bank.Domains.Payment.Services;
 using CPTech.Core;
 using CPTech.Security;
@@ -11,6 +6,11 @@ using Icbc.Business;
 using Icbc.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
 
 namespace Icbc.Services
 {
@@ -30,82 +30,87 @@ namespace Icbc.Services
             options = icbcOptions.Value;
         }
 
-        public BasePayRsp OrderPay(OrderPayReq payment)
+        public BasePayRsp OrderPay(OrderPayReq orderPayReq)
         {
             BasePayRsp result = null;
-            switch (payment.PayType)
+            switch (orderPayReq.PayType)
             {
                 case PayTypeEnum.Unknown:
                     throw new NotImplementedException();
                 case PayTypeEnum.Alipay:
                     throw new NotImplementedException();
                 case PayTypeEnum.WechatPay:
-                    result = B2cPay(payment);
+                    result = B2cPay(orderPayReq);
                     break;
                 case PayTypeEnum.Bank:
-                    result = B2bPay(payment);
+                    result = B2bPay(orderPayReq);
                     break;
             }
 
             return result;
         }
 
-        public OrderQueryRsp OrderQuery(OrderQueryReq payQuery)
+        public OrderQueryRsp OrderQuery(OrderQueryReq orderQueryReq)
         {
             OrderQueryRsp result = null;
-            switch (payQuery.PayType)
+            switch (orderQueryReq.PayType)
             {
                 case PayTypeEnum.Unknown:
                     throw new NotImplementedException();
                 case PayTypeEnum.Alipay:
                     throw new NotImplementedException();
                 case PayTypeEnum.WechatPay:
-                    result = B2cQuery(payQuery);
+                    result = B2cQuery(orderQueryReq);
                     break;
                 case PayTypeEnum.Bank:
-                    result = B2bQuery(payQuery);
+                    result = B2bQuery(orderQueryReq);
                     break;
             }
 
             return result;
         }
 
-        public string OrderClose(OrderQueryReq payQuery)
+        public BasePayRsp OrderClose(OrderQueryReq orderCloseReq)
         {
-            string result = null;
-            switch (payQuery.PayType)
+            BasePayRsp result = null;
+            switch (orderCloseReq.PayType)
             {
                 case PayTypeEnum.Unknown:
                     throw new NotImplementedException();
                 case PayTypeEnum.Alipay:
                     throw new NotImplementedException();
                 case PayTypeEnum.WechatPay:
-                    result = B2cClose(payQuery);
+                    result = B2cClose(orderCloseReq);
                     break;
                 case PayTypeEnum.Bank:
-                    result = B2bClose(payQuery);
+                    result = B2bClose(orderCloseReq);
                     break;
             }
 
             return result;
         }
 
-        public string OrderNotify(OrderNotifyReq payNotify)
+        public string OrderNotify(OrderNotifyReq orderNotifyReq)
         {
             string result = null;
-            switch (payNotify.PayType)
+            switch (orderNotifyReq.PayType)
             {
                 case PayTypeEnum.Alipay:
                     throw new NotImplementedException();
                 case PayTypeEnum.WechatPay:
-                    result = B2cNotify(payNotify);
+                    result = B2cNotify(orderNotifyReq);
                     break;
                 case PayTypeEnum.Bank:
-                    result = B2bNotify(payNotify);
+                    result = B2bNotify(orderNotifyReq);
                     break;
             }
 
             return result;
+        }
+
+        public BasePayRsp OrderRefund(BasePayReq orderRefundReq)
+        {
+            throw new NullReferenceException();
         }
 
         #region 聚合支付
@@ -126,6 +131,7 @@ namespace Icbc.Services
                 OrigDateTime = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"),
                 DeciveInfo = "0123456789",  //设备号
                 Body = orderPayReq.Note,
+                Attach = orderPayReq.Note,
                 FeeType = "001",
                 SpbillCreateIp = "192.168.0.1",
                 TotalFee = orderPayReq.Amount.ToString(),
@@ -134,20 +140,18 @@ namespace Icbc.Services
                 IcbcAppId = options.AppId,
                 OpenId = orderPayReq.Payer,
                 NotifyType = "HS",
-                ResultType = "0"
+                ResultType = "0",
+                OrderApdInf = orderPayReq.Note
             };
 
             var response = (CardbusinessAggregatepayB2cOnlineConsumepurchaseResponseV1)client.Execute(
-                new CardbusinessAggregatepayB2cOnlineConsumepurchaseRequestV1()
-                {
-                    Content = bizContent
-                });
+                new CardbusinessAggregatepayB2cOnlineConsumepurchaseRequestV1() { Content = bizContent });
 
-            int returnCode = int.Parse(response.ReturnCode.ToString());
             return new BasePayRsp
             {
-                Code = returnCode == 0 ? 200 : returnCode,
+                Code = response.ReturnCode,
                 Message = response.ReturnMsg,
+                FlowNo = response.OrderId,
                 Data = response.WxDataPackage
             };
         }
@@ -161,7 +165,7 @@ namespace Icbc.Services
             {
                 MerId = merInfo.Id,
                 OutTradeNo = orderQueryReq.OrderNo,
-                DealFlag = orderQueryReq.QueryType == QueryTypeEnum.Close ? "1" : "0",
+                DealFlag = "0",
                 IcbcAppId = options.AppId
             };
 
@@ -170,48 +174,48 @@ namespace Icbc.Services
                 {
                     Content = bizContent
                 });
+            Console.WriteLine($"query response: {JsonSerializer.Serialize(rsp, Constants.JsonSerializerOption)}");
 
-            int returnCode = int.Parse(rsp.ReturnCode.ToString());
-            bool isSuccess = returnCode == 0;
+            var result = new OrderQueryRsp { Code = rsp.ReturnCode, Message = rsp.ReturnMsg };
 
-            return new OrderQueryRsp
+            if (rsp.ReturnCode == 0)
             {
-                Code = isSuccess ? 200 : returnCode,
-                Message = rsp.ReturnMsg,
-                Status = isSuccess ? PaymentStatus.Success : default(PaymentStatus?),
-                EndTime = isSuccess ? DateTime.ParseExact(rsp.PayTime, "yyyyMMddHHmmss", null) : default(DateTime?),
-                Amount = isSuccess ? decimal.Parse(rsp.TotalAmt) / 100 : default(decimal?),
-                FlowNo = isSuccess ? rsp.ThirdTradeNo : null,   // 交易单号
-                Reserve = isSuccess ? rsp.OrderId : null,   // 商户单号
-                Data = JsonSerializer.Serialize(rsp, Constants.JsonSerializerOption)
+                result.Status = PaymentStatus.Success;
+                result.EndTime = DateTime.ParseExact(rsp.PayTime, "yyyyMMddHHmmss", null);
+                result.Amount = decimal.Parse(rsp.TotalAmt) / 100;
+                result.FlowNo = rsp.OrderId;   // 工行单号
+                result.Reserve = rsp.ThirdTradeNo;   // 商户单号
+                result.Data = JsonSerializer.Serialize(rsp, Constants.JsonSerializerOption);
             };
+
+            return result;
         }
 
-        private string B2cClose(OrderQueryReq orderQueryReq)
+        private BasePayRsp B2cClose(OrderQueryReq orderCloseReq)
         {
             IcbcClient client = new IcbcClient(options.AppId, options.PrivateKey, options.GatewayPublicKey, clientFactory.CreateClient());
-            var merInfo = options.MerInfos.FirstOrDefault(m => m.AccNo == orderQueryReq.Payee) ?? throw new Exception("无效的Merinfo信息!");
+            var merInfo = options.MerInfos.FirstOrDefault(m => m.AccNo == orderCloseReq.Payee) ?? throw new Exception("无效的Merinfo信息!");
 
             var bizContent = new CardbusinessAggregatepayB2cOnlineOrderqryRequestV1.CardbusinessAggregatepayB2cOnlineOrderqryRequestV1Biz()
             {
                 MerId = merInfo.Id,
-                OutTradeNo = orderQueryReq.OrderNo,
+                OutTradeNo = orderCloseReq.OrderNo,
                 DealFlag = "1",
                 IcbcAppId = options.AppId
             };
 
-            var response = (CardbusinessAggregatepayB2cOnlineOrderqryResponseV1)client.Execute(
-                new CardbusinessAggregatepayB2cOnlineOrderqryRequestV1()
-                {
-                    Content = bizContent
-                });
+            var rsp = (CardbusinessAggregatepayB2cOnlineOrderqryResponseV1)client.Execute(
+                new CardbusinessAggregatepayB2cOnlineOrderqryRequestV1() { Content = bizContent });
 
-            return JsonSerializer.Serialize(response, Constants.JsonSerializerOption);
+            var result = new BasePayRsp { Code = rsp.ReturnCode, Message = rsp.ReturnMsg };
+            if (rsp.ReturnCode == 0) result.Status = PaymentStatus.Closed;
+
+            return result;
         }
 
         private string B2cNotify(OrderNotifyReq payNotify)
         {
-            B2cNotifyResponse rsp = new B2cNotifyResponse
+            var rsp = new B2cNotifyResponse
             {
                 ResponseBizContent = new B2cNotifyResponse.BizContent
                 {
@@ -222,9 +226,9 @@ namespace Icbc.Services
                 SignType = options.PrivateKeyType
             };
 
-            string response = JsonSerializer.Serialize(rsp, Constants.JsonSerializerOption);
+            string signContent = JsonSerializer.Serialize(rsp, Constants.JsonSerializerOption)[1..^1];
             RsaUtil rsaUtil = new RsaUtil(options.PrivateKey, null);
-            rsp.Sign = rsaUtil.Sign(response);
+            rsp.Sign = rsaUtil.Sign(signContent);
 
             return JsonSerializer.Serialize(rsp, Constants.JsonSerializerOption);
         }
@@ -234,7 +238,7 @@ namespace Icbc.Services
         private BasePayRsp B2bPay(OrderPayReq orderPayReq)
         {
             IcbcClient client = new IcbcClient(options.BizAppId, options.BizPrivateKey, options.BizGatewayPublicKey, clientFactory.CreateClient());
-            var bizMerInfo = options.BizMerInfos[0];
+            var bizMerInfo = options.BizMerInfos.FirstOrDefault(e => e.AccNo == orderPayReq.Payee) ?? throw new Exception("无效的收款账户！");
 
             var recvMallInfoList = new List<MybankPayCpayCppayapplyRequestV2.RecvMallInfo>
             {
@@ -243,7 +247,7 @@ namespace Icbc.Services
                     MallCode = bizMerInfo.Id,
                     MallName = bizMerInfo.AccName,
                     PayeeCompanyName = bizMerInfo.AccName,
-                    PayeeSysflag = "1",
+                    PayeeSysflag = bizMerInfo.IcbcFlag,
                     PayeeAccno = bizMerInfo.AccNo,
                     PayAmount = orderPayReq.Amount.ToString()
                 }
@@ -268,7 +272,7 @@ namespace Icbc.Services
                 PartnerSeq = orderPayReq.OrderNo,
                 PayChannel = "1",
                 InternationalFlag = "1",
-                PayMode = "1",
+                PayMode = bizMerInfo.PayMode,
                 PayEntitys = "1",
                 AsynFlag = "0",
                 PayMemno = orderPayReq.Payer,
@@ -279,24 +283,24 @@ namespace Icbc.Services
                 SumPayamt = orderPayReq.Amount.ToString(),
                 OrderRemark = orderPayReq.Note,
                 RceiptRemark = orderPayReq.Note,
-                SubmitTime = "20201201" + DateTime.Now.ToString("HHmmss"),
+                SubmitTime = DateTime.Now.ToString("yyyyMMddHHmmss"),
+                //SubmitTime = "20210331" + DateTime.Now.ToString("HHmmss"),
                 ReturnUrl = options.ReturnUrl,
-                CallbackUrl = options.NotifyUrl,
+                CallbackUrl = options.BizNotifyUrl,
                 IdentityMode = "0",
+                EnterpriseName = orderPayReq.PayerName,
                 PayeeList = recvMallInfoList,
                 GoodsList = goodsInfoList
             };
 
-            var response = (MybankPayCpayCppayapplyResponseV2)client.Execute(new MybankPayCpayCppayapplyRequestV2
-            {
-                Content = bizContent
-            });
+            var response = (MybankPayCpayCppayapplyResponseV2)client.Execute(
+                new MybankPayCpayCppayapplyRequestV2 { Content = bizContent });
 
-            int returnCode = int.Parse(response.ReturnCode.ToString());
             return new BasePayRsp
             {
-                Code = returnCode == 0 ? 200 : returnCode,
+                Code = response.ReturnCode,
                 Message = response.ReturnMsg,
+                FlowNo = response.PartnerSeq,
                 Data = JsonSerializer.Serialize(response, Constants.JsonSerializerOption)
             };
         }
@@ -314,24 +318,19 @@ namespace Icbc.Services
             };
 
             var response = (MybankPayCpayCporderqueryResponseV2)client.Execute(
-                new MybankPayCpayCporderqueryRequestV2
-                {
-                    Content = bizContent
-                });
-
-            int returnCode = int.Parse(response.ReturnCode.ToString());
-            bool isSuccess = returnCode == 0;
+                new MybankPayCpayCporderqueryRequestV2 { Content = bizContent });
 
             return new OrderQueryRsp
             {
-                Code = isSuccess ? 200 : returnCode,
+                Code = response.ReturnCode,
                 Message = response.ReturnMsg,
-                Status = isSuccess ? PaymentStatus.Success : PaymentStatus.Paying,
-                Data = JsonSerializer.Serialize(returnCode, Constants.JsonSerializerOption)
+                Status = response.ReturnCode == 0 ? PaymentStatus.Success : PaymentStatus.Paying,
+                FlowNo = response.PartnerSeq,
+                Data = JsonSerializer.Serialize(response, Constants.JsonSerializerOption)
             };
         }
 
-        private string B2bClose(OrderQueryReq orderQueryReq)
+        private BasePayRsp B2bClose(OrderQueryReq orderCloseReq)
         {
             IcbcClient client = new IcbcClient(options.BizAppId, options.BizPrivateKey, options.BizGatewayPublicKey, clientFactory.CreateClient());
             var bizMerInfo = options.BizMerInfos[0];
@@ -339,25 +338,73 @@ namespace Icbc.Services
             var bizContent = new MybankPayCpayCpordercloseRequestV1.MybankPayCpayCpordercloseV1RequestV1Biz
             {
                 AgreeCode = bizMerInfo.PrtclNo,
-                PartnerSeq = orderQueryReq.OrderNo,
-                OrderCode = orderQueryReq.OrderNo
+                PartnerSeq = orderCloseReq.OrderNo,
+                OrderCode = orderCloseReq.OrderNo
             };
 
-            var response = (MybankPayCpayCpordercloseResponseV1)client.Execute(
-                new MybankPayCpayCpordercloseRequestV1
-                {
-                    Content = bizContent
-                });
+            var rsp = (MybankPayCpayCpordercloseResponseV1)client.Execute(
+                new MybankPayCpayCpordercloseRequestV1 { Content = bizContent });
 
-            int returnCode = int.Parse(response.ReturnCode.ToString());
-            bool isSuccess = returnCode == 0;
+            var result = new BasePayRsp { Code = rsp.ReturnCode, Message = rsp.ReturnMsg };
+            if (rsp.ReturnCode == 0) result.Status = PaymentStatus.Closed;
 
-            return JsonSerializer.Serialize(response, Constants.JsonSerializerOption);
+            return result;
         }
 
-        private string B2bNotify(OrderNotifyReq payNotify)
+        private string B2bNotify(OrderNotifyReq orderNotifyReq)
         {
-            throw new NullReferenceException();
+            var rsp = new B2cNotifyResponse
+            {
+                ResponseBizContent = new B2cNotifyResponse.BizContent
+                {
+                    ReturnCode = 0,
+                    ReturnMsg = "success",
+                    MsgId = orderNotifyReq.MsgId
+                },
+                SignType = options.PrivateKeyType
+            };
+
+            string signContent = JsonSerializer.Serialize(rsp, Constants.JsonSerializerOption)[1..^1];
+            RsaUtil rsaUtil = new RsaUtil(options.PrivateKey, null);
+            rsp.Sign = rsaUtil.Sign(signContent);
+
+            return JsonSerializer.Serialize(rsp, Constants.JsonSerializerOption);
+        }
+
+        public BasePayRsp MemberApply(string payeeNo)
+        {
+            IcbcClient client = new IcbcClient(options.BizAppId, options.BizPrivateKey, options.BizGatewayPublicKey, clientFactory.CreateClient());
+            var bizMerInfo = options.BizMerInfos.FirstOrDefault(e => e.AccNo == payeeNo) ?? throw new Exception("无效的收款账户！");
+
+            var bizContent = new MybankPayCpayMemberapplyRequestV1.MybankPayCpayMemberapplyRequestV1Biz
+            {
+                AgreeCode = bizMerInfo.PrtclNo,
+                MemberNo = bizMerInfo.Id,
+                MemberName = bizMerInfo.AccName,
+                MemberType = "01",
+                MemberRole = "2",
+                CertificateType = "101",
+                CertificateId = bizMerInfo.CertificateNo,
+                CorpRepreIdType = "0",
+                CorpRepreName = bizMerInfo.CorporationName,
+                CorpRepreId = bizMerInfo.CorporationNo,
+                DealName = bizMerInfo.DealName,
+                DealTelphoneNo = bizMerInfo.DealTelNo,
+                IcpCode = bizMerInfo.IcpCode,
+                AccBankFlag = bizMerInfo.IcbcFlag,
+                Accno = bizMerInfo.AccNo,
+                AccName = bizMerInfo.AccName,
+                AccBankNo = bizMerInfo.AccBankNo,
+                AccBankName = bizMerInfo.AccBankName
+            };
+
+            var rsp = (MybankPayCpayMemberapplyResponseV1)client.Execute(
+                new MybankPayCpayMemberapplyRequestV1 { Content = bizContent });
+
+            var result = new BasePayRsp { Code = rsp.ReturnCode, Message = rsp.ReturnMsg };
+            if (rsp.ReturnCode == 0) result.Status = PaymentStatus.Closed;
+
+            return result;
         }
         #endregion
     }

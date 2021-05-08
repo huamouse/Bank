@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Bank.Domains.Payment;
 using Bank.Domains.Payment.Entities;
@@ -29,13 +30,14 @@ namespace Bank.Controllers
         {
             logger.LogInformation($"RegisterAsync:{req}");
             var payNotify = await paymentRepository.SelectNotifyAsync(req.Tag);
-            if (payNotify != null) ResultModel.Error(500, $"Tag: {req.Tag} has register！");
+            if (payNotify != null) ResultModel.Error(500, $"Tag: {req.Tag} has register！Url:{payNotify.Url}");
 
             int count = await paymentRepository.AddAsync(new PayNotify
             {
                 Tag = req.Tag,
                 Url = req.url,
-                CreatorId = req.CreatorId
+                CreatorId = req.CreatorId,
+                CreationTime = DateTime.Now
             });
 
             return count == 1 ? ResultModel.Ok("Notify Register Success！") : ResultModel.Error(500, "Notify Register Failed！");

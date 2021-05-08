@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using Bank.Domains.Enities;
+using CPTech.EFCore.Entities;
 
 namespace Bank.Domains.Payment.Entities
 {

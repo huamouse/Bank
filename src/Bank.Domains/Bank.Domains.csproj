@@ -6,12 +6,12 @@
 
   <ItemGroup>
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageReference Include="System.Text.Json" Version="5.0.0" />
+    <PackageReference Include="System.Text.Json" Version="5.0.1" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CPTech.Core\CPTech.Core.csproj" />
+    <ProjectReference Include="..\CPTech.EFCore\CPTech.EFCore.csproj" />
   </ItemGroup>
 
 </Project>

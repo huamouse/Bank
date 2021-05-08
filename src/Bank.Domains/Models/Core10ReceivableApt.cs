@@ -1,49 +1,48 @@
-﻿using CPTech.EntityFrameworkCore.Mapping;
-using System;
-using System.Collections.Generic;
+﻿using System;
+using CPTech.EFCore.Mapping;
 
 namespace Bank.EFCore.Models
 {
-    [EntityAttribute("CORE10_Receivable_APT")]
+    [Entity("CORE10_Receivable_APT")]
     public partial class Core10ReceivableApt
     {
         public Guid Id { get; set; }
         public bool Deleted { get; set; }
 
-        [FieldAttribute("CREATED_BY")]
+        [Field("CREATED_BY")]
         public Guid? CreatedBy { get; set; }
 
-        [FieldAttribute("DATE_ENTERED")]
+        [Field("DATE_ENTERED")]
         public DateTime DateEntered { get; set; }
 
-        [FieldAttribute("MODIFIED_USER_ID")]
+        [Field("MODIFIED_USER_ID")]
         public Guid? ModifiedUserId { get; set; }
 
-        [FieldAttribute("DATE_MODIFIED")]
+        [Field("DATE_MODIFIED")]
         public DateTime DateModified { get; set; }
 
-        [FieldAttribute("C_ContractID")]
+        [Field("C_ContractID")]
         public Guid? CContractId { get; set; }
 
-        [FieldAttribute("C_ReceiveType")]
+        [Field("C_ReceiveType")]
         public string CReceiveType { get; set; }
 
-        [FieldAttribute("C_StartTime")]
+        [Field("C_StartTime")]
         public DateTime? CStartTime { get; set; }
 
-        [FieldAttribute("C_EndTime")]
+        [Field("C_EndTime")]
         public DateTime? CEndTime { get; set; }
 
-        [FieldAttribute("C_ReceivableMoney")]
+        [Field("C_ReceivableMoney")]
         public decimal? CReceivableMoney { get; set; }
 
-        [FieldAttribute("C_ActualMoney")]
+        [Field("C_ActualMoney")]
         public decimal? CActualMoney { get; set; }
 
-        [FieldAttribute("C_Flag")]
+        [Field("C_Flag")]
         public int? CFlag { get; set; }
 
-        [FieldAttribute("C_TheoreticalMoney")]
+        [Field("C_TheoreticalMoney")]
         public decimal? CTheoreticalMoney { get; set; }
     }
 }

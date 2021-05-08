@@ -1,8 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
-using CPTech.Core;
 
-namespace Bank.Domains.Enities
+namespace CPTech.EFCore.Entities
 {
     public class BaseEntity
     {

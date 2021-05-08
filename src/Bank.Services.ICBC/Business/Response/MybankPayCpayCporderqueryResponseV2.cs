@@ -67,7 +67,7 @@ namespace Icbc.Business
 
         public class PayPlan
         {
-            public string PayPlanSubcode { get; set; }
+            public int PayPlanSubcode { get; set; }
 
             public string PayEntity { get; set; }
 
@@ -75,11 +75,11 @@ namespace Icbc.Business
 
             public string PayCurr { get; set; }
 
-            public string Status { get; set; }
+            public int Status { get; set; }
 
-            public string AppendFlag { get; set; }
+            public int AppendFlag { get; set; }
             [JsonPropertyName("errno")]
-            public string ErrNo { get; set; }
+            public int ErrNo { get; set; }
             [JsonPropertyName("errmsg")]
             public string ErrMsg { get; set; }
             [JsonPropertyName("billno")]
@@ -104,14 +104,19 @@ namespace Icbc.Business
 
             public string PayeeCountry { get; set; }
 
+            [JsonPropertyName("racaddress1")]
             public string RacAddress1 { get; set; }
 
+            [JsonPropertyName("racaddress2")]
             public string RacAddress2 { get; set; }
 
+            [JsonPropertyName("racaddress3")]
             public string RacAddress3 { get; set; }
 
+            [JsonPropertyName("racaddress4")]
             public string RacAddress4 { get; set; }
 
+            [JsonPropertyName("racpostcode")]
             public string RacPostcode { get; set; }
 
             public string Agentbic { get; set; }
@@ -126,6 +131,8 @@ namespace Icbc.Business
         public class Goods
         {
             public string PayeeCompanyName { get; set; }
+
+            public string PayeeAccName { get; set; }
 
             public string GoodsName { get; set; }
 

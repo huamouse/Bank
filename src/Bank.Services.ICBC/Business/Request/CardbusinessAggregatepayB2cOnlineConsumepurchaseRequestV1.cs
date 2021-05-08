@@ -7,8 +7,8 @@ namespace Icbc.Business
     {
         public override HttpMethod Method => HttpMethod.Post;
 
-        //public override string ServiceUrl => "https://apipcs3.dccnet.com.cn/api/cardbusiness/aggregatepay/b2c/online/consumepurchase/V1";
         public override string ServiceUrl => "https://gw.open.icbc.com.cn/api/cardbusiness/aggregatepay/b2c/online/consumepurchase/V1";
+        //public override string ServiceUrl => "https://apipcs3.dccnet.com.cn/api/cardbusiness/aggregatepay/b2c/online/consumepurchase/V1";
 
         public override Type GetBizContentClass() => typeof(CardbusinessAggregatepayB2cOnlineConsumepurchaseRequestV1Biz);
 

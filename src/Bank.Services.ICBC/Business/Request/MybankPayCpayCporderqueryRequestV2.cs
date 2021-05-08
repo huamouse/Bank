@@ -6,8 +6,8 @@ namespace Icbc.Business
     {
         public override HttpMethod Method => HttpMethod.Post;
 
-        //public override string ServiceUrl => "https://gw.open.icbc.com.cn/api/mybank/pay/cpay/cporderquery/V2";
-        public override string ServiceUrl => "https://apipcs3.dccnet.com.cn/api/mybank/pay/cpay/cporderquery/V2";
+        public override string ServiceUrl => "https://gw.open.icbc.com.cn/api/mybank/pay/cpay/cporderquery/V2";
+        //public override string ServiceUrl => "https://apipcs3.dccnet.com.cn/api/mybank/pay/cpay/cporderquery/V2";
 
         public override Type GetBizContentClass() => typeof(QueryPayApplyRequestV2Biz);
 

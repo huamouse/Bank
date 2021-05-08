@@ -29,6 +29,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CPTech.Core", "src\CPTech.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bank.Services.Ccb", "src\Bank.Services.Ccb\Bank.Services.Ccb.csproj", "{5C0CD01A-7F44-47C7-ACF7-71FB4A08C2B1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPTech.EFCore", "src\CPTech.EFCore\CPTech.EFCore.csproj", "{ABD4FE96-BEF2-416F-871F-D7C5BF396685}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +81,10 @@ Global
 		{5C0CD01A-7F44-47C7-ACF7-71FB4A08C2B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C0CD01A-7F44-47C7-ACF7-71FB4A08C2B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C0CD01A-7F44-47C7-ACF7-71FB4A08C2B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABD4FE96-BEF2-416F-871F-D7C5BF396685}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABD4FE96-BEF2-416F-871F-D7C5BF396685}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABD4FE96-BEF2-416F-871F-D7C5BF396685}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABD4FE96-BEF2-416F-871F-D7C5BF396685}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -95,6 +101,7 @@ Global
 		{D7BFE59B-0142-4CE9-8E83-8F189DD42619} = {D3EFB15B-C23C-4855-8C5E-FCCADD851EBD}
 		{3B0D2A2E-DDCF-4A64-B525-7A9D79024032} = {D3EFB15B-C23C-4855-8C5E-FCCADD851EBD}
 		{5C0CD01A-7F44-47C7-ACF7-71FB4A08C2B1} = {D3EFB15B-C23C-4855-8C5E-FCCADD851EBD}
+		{ABD4FE96-BEF2-416F-871F-D7C5BF396685} = {D3EFB15B-C23C-4855-8C5E-FCCADD851EBD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CC4CF8DC-9751-4599-B8BD-9A785A24B1AE}

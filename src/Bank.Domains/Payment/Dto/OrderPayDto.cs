@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace Bank.Domains.Payment
 {
@@ -14,6 +15,15 @@ namespace Bank.Domains.Payment
         public string Channel { get; set; }
 
         // 付款方
+        [Required]
         public string Payer { get; set; }
+
+        public string PayerName { get; set; }
+
+        // 付款方
+        [Required]
+        public string Payee { get; set; }
+        [RegularExpression(@"^(([0-9]|([1-9][0-9]{0,9}))((\.[0-9]{1,2})?))$")]
+        public decimal Amount { get; set; }
     }
 }

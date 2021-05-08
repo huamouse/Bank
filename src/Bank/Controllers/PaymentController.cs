@@ -1,17 +1,21 @@
-﻿using System;
+﻿using Bank.Domains.Payment;
+using Bank.Domains.Payment.Entities;
+using Bank.Domains.Payment.Services;
+using CPTech.Core;
+using CPTech.Extension;
+using CPTech.Models;
+using CPTech.Security;
+using Icbc.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Bank.Domains.Payment;
-using Bank.Domains.Payment.Entities;
-using Bank.Domains.Payment.Services;
-using Cptech.Extension;
-using CPTech.Core;
-using CPTech.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace Bank.Controllers
 {
@@ -21,6 +25,7 @@ namespace Bank.Controllers
     {
         private readonly ILogger<PaymentController> logger;
         private readonly IPaymentRepository paymentRepository;
+        private readonly IDistributedCache cache;
         private readonly IEnumerable<IPaymentService> paymentServices;
 
         private readonly HttpClient httpClient;
@@ -28,6 +33,7 @@ namespace Bank.Controllers
         public PaymentController(ILogger<PaymentController> logger,
             IHttpClientFactory httpClientFactory,
             IPaymentRepository paymentRepository,
+            IDistributedCache cache,
             IEnumerable<IPaymentService> paymentServices)
         {
             this.logger = logger;
@@ -36,6 +42,16 @@ namespace Bank.Controllers
 
             this.paymentRepository = paymentRepository;
             this.paymentServices = paymentServices;
+
+            try
+            {
+                cache.GetString("pay");
+                this.cache = cache;
+            }
+            catch (Exception)
+            {
+                logger.LogError("Redis connect failed!");
+            }
         }
 
         [HttpGet]
@@ -44,87 +60,86 @@ namespace Bank.Controllers
             return ResultModel.Ok("Comm test success!");
         }
 
+        [Authorize]
         [HttpPost("orderCreate")]
         public async Task<ResultModel> OrderCreate(OrderCreateDto req)
         {
+            if (req.Amount <= 0) throw new NetException(500, $"支付金额非法：{req.Amount}");
+
             logger.LogInformation($"create order req: {JsonSerializer.Serialize(req, Constants.JsonSerializerOption)}");
+            string token = HmacSha256.Compute(JsonSerializer.Serialize(req, Constants.JsonSerializerOption), this.GetType().Name);
+
+            var cacheToken = cache?.GetString(token);
+            if (cacheToken is { Length: > 0 })
+                throw new NetException(500, $"相同请求3s内禁止重复提交：{cacheToken}");
+            else
+                cache?.SetString(token, JsonSerializer.Serialize(req, Constants.JsonSerializerOption),
+                    new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(5) });
 
             if (req.OldOrderId != null)
             {
-                PayOrder payOrderCancel = await paymentRepository.OrderQueryLastAsync(req.OldOrderId.Value);
+                PayOrder payOrderCancel = await paymentRepository.OrderQueryAsync(req.OldOrderId.Value);
 
-                var paymentService = GetPaymentService(payOrderCancel.Channel);
-                var rspClose = paymentService.OrderClose(new OrderQueryReq
+                if (payOrderCancel != null)
                 {
-                    OrderNo = payOrderCancel.OrderNo.ToString(),
-                    PayType = payOrderCancel.PayType,
-                    Payee = payOrderCancel.Payee
-                });
-
-                payOrderCancel.CloseId = req.CreatorId;
-                payOrderCancel.CloseTime = DateTime.Now;
-                await paymentRepository.OrderCloseAsync(payOrderCancel);
+                    var paymentService = GetPaymentService(payOrderCancel.Channel);
+                    var rspClose = paymentService.OrderClose(new OrderQueryReq
+                    {
+                        OrderNo = payOrderCancel.Id.ToString(),
+                        PayType = payOrderCancel.PayType,
+                        Payee = payOrderCancel.Payee
+                    });
+                    if (rspClose is { Status: PaymentStatus.Closed })
+                    {
+                        payOrderCancel.Status = (int)PaymentStatus.Closed;
+                        payOrderCancel.CloseId = req.CreatorId;
+                        payOrderCancel.CloseTime = DateTime.Now;
+                        await paymentRepository.OrderCloseAsync(payOrderCancel);
+                    }
+                }
             }
 
             PayOrder payOrder = new()
             {
-                OrderNo = SnowFlake.NextId(),
+                Tag = req.Tag,
                 Payee = req.Payee,
                 Amount = decimal.ToInt32(req.Amount * 100),
                 Note = req.Note,
                 CreatorId = req.CreatorId
             };
+            //payOrder.OrderNo = payOrder.Id;
 
             await paymentRepository.OrderCreateAsync(payOrder);
 
-            return ResultModel.Ok(new
-            {
-                OrderId = payOrder.Id
-            });
+            return ResultModel.Ok(new { OrderId = payOrder.Id });
         }
 
+        [Authorize]
         [HttpPost("OrderPay")]
-        public async Task<ResultModel> OrderPay(OrderPayDto req)
+        public async Task<string> OrderPay(OrderPayDto req)
         {
-            var payOrder = await paymentRepository.FindAsync<PayOrder>(req.OrderId) ?? throw new NetException(500, "无效的订单号");
+            logger.LogInformation($"order pay req: {JsonSerializer.Serialize(req, Constants.JsonSerializerOption)}");
 
-            switch ((PaymentStatus)payOrder.Status)
-            {
-                case PaymentStatus.Canceled:
-                    throw new NetException(500, "该订单已取消，禁止支付！");
-                case PaymentStatus.Closed:
-                    throw new NetException(500, "该订单已关闭，禁止支付！");
-                case PaymentStatus.Success:
-                    throw new NetException(500, "已支付订单禁止重复支付！");
-            }
+            var result = cache?.GetString(req.OrderId.ToString());
+            if (result is { Length: > 0 }) return result;
 
+            var payOrder = await paymentRepository.OrderQueryAsync(req.OrderId) ?? throw new NetException(500, "订单已关闭或无效的订单号");
+            if (payOrder.Status == (int)PaymentStatus.Success) throw new NetException(500, "已支付订单禁止重复支付！");
+
+            payOrder.Payer = req.Payer;
+            payOrder.PayerName = req.PayerName;
             payOrder.PayType = Enum.Parse<PayTypeEnum>(req.PayType, true);
             payOrder.Channel = Enum.Parse<ChannelEnum>(req.Channel, true);
-            var paymentService = this.GetPaymentService(payOrder.Channel);
-
-            // 取消旧订单
-            if (payOrder.Status == (int)PaymentStatus.Paying && DateTime.Now > payOrder.PayTime.Value.AddMinutes(15))
-            {
-                payOrder.Status = (int)PaymentStatus.Closed;
-                payOrder.CloseTime = DateTime.Now;
-                await paymentRepository.UpdateAsync(payOrder);
-
-                throw new NetException(500, "订单已超时，禁止支付！");
-            }
-            else
-                payOrder.PayTime = DateTime.Now;
-            payOrder.Payer = req.Payer;
-
-            await paymentRepository.UpdateAsync(payOrder);
+            var paymentService = GetPaymentService(payOrder.Channel);
 
             OrderPayReq orderPayReq = new()
             {
-                OrderNo = payOrder.OrderNo.ToString(),
+                OrderNo = payOrder.Id.ToString(),
                 PayType = payOrder.PayType,
                 Amount = payOrder.Amount,
                 Note = payOrder.Note,
-                //NotifyUrl = "https://www.cptech.com.cn/pay/eventreceive",
                 Payer = payOrder.Payer,
+                PayerName = payOrder.PayerName,
                 Payee = payOrder.Payee
             };
             PayOrderLog orderPayLog = new()
@@ -136,21 +151,35 @@ namespace Bank.Controllers
             await paymentRepository.AddPayOrderLogAsync(orderPayLog);
 
             BasePayRsp rsp = paymentService.OrderPay(orderPayReq);
+            orderPayLog.ReturnCode = rsp.Code.ToString();
+            orderPayLog.ReturnMsg = rsp.Message;
             orderPayLog.Response = rsp.Data;
             await paymentRepository.UpdateAsync(orderPayLog);
 
-            return new ResultModel
+            payOrder.PayTime = DateTime.Now;
+            await paymentRepository.UpdateAsync(payOrder);
+
+            ResultModel resultModel = new()
             {
-                Code = rsp.Code,
-                Message = rsp.Message,
+                Code = rsp.Code == 0 ? 200 : rsp.Code,
+                Message = rsp.Code == 0 ? rsp.FlowNo : rsp.Message,
                 Data = rsp.Data
             };
+            result = JsonSerializer.Serialize(resultModel, Constants.JsonSerializerOption);
+            Console.WriteLine($"order pay response: {JsonSerializer.Serialize(rsp, Constants.JsonSerializerOption)}");
+            Console.WriteLine($"order pay response2: {result}");
+
+            cache?.SetString(req.OrderId.ToString(), result,
+                new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(20) });
+
+            return result;
         }
 
+        [Authorize]
         [HttpGet("OrderQuery/{orderId}")]
         public async Task<ResultModel> OrderQuery(long orderId)
         {
-            var payOrder = await paymentRepository.FindAsync<PayOrder>(orderId);
+            var payOrder = await paymentRepository.FindAsync<PayOrder>(orderId) ?? throw new NetException(500, "无效的订单号");
             if (payOrder.Status == (int)PaymentStatus.Success)
             {
                 return ResultModel.Ok(new
@@ -162,10 +191,10 @@ namespace Bank.Controllers
                 });
             }
 
-            var paymentService = this.GetPaymentService(payOrder.Channel);
+            var paymentService = GetPaymentService(payOrder.Channel);
             var rsp = paymentService.OrderQuery(new OrderQueryReq
             {
-                OrderNo = payOrder.OrderNo.ToString(),
+                OrderNo = payOrder.Id.ToString(),
                 PayType = payOrder.PayType,
                 Payee = payOrder.Payee
             });
@@ -179,10 +208,11 @@ namespace Bank.Controllers
 
             return new ResultModel
             {
-                Code = rsp.Code,
+                Code = rsp.Code == 0 ? 200 : rsp.Code,
                 Message = rsp.Message,
                 Data = new
                 {
+                    orderId,
                     rsp.Amount,
                     rsp.Status,
                     rsp.FlowNo,
@@ -191,28 +221,50 @@ namespace Bank.Controllers
             };
         }
 
+        [Authorize]
         [HttpPost("orderCancel")]
-        public async Task<ResultModel> OrderCancel((long OrderNo, long? ClosersId) req)
+        public async Task<ResultModel> OrderCancel((long orderId, long? CancelerId) req)
         {
-            var payOrder = await paymentRepository.OrderQueryLastAsync(req.OrderNo) ?? throw new NetException(500, "无效的订单号");
-
-            if (payOrder.Channel != ChannelEnum.Unknown)
+            var payOrder = await paymentRepository.OrderQueryAsync(req.orderId) ?? throw new NetException(500, "订单已关闭或无效的订单号");
+            if (payOrder.Channel == ChannelEnum.Unknown)
             {
-                var paymentService = this.GetPaymentService(payOrder.Channel);
+                payOrder.Status = (int)PaymentStatus.Closed;
+                payOrder.CloseId = req.CancelerId;
+                payOrder.CloseTime = DateTime.Now;
+                await paymentRepository.SaveChangesAsync();
 
-                var rspClose = paymentService?.OrderClose(new OrderQueryReq
-                {
-                    OrderNo = payOrder.OrderNo.ToString(),
-                    PayType = payOrder.PayType,
-                    Payee = payOrder.Payee
-                });
+                return ResultModel.Ok($"订单:{payOrder.Id}已手动关闭！");
             }
 
-            payOrder.CloseId = req.ClosersId;
-            payOrder.CloseTime = DateTime.Now;
-            await paymentRepository.OrderCloseAsync(payOrder);
+            var paymentService = this.GetPaymentService(payOrder.Channel);
+            var rspClose = paymentService?.OrderClose(new OrderQueryReq
+            {
+                OrderNo = payOrder.Id.ToString(),
+                PayType = payOrder.PayType,
+                Payee = payOrder.Payee
+            });
 
-            return ResultModel.Ok(payOrder.Status == (int)PaymentStatus.Closed ? $"订单:{req.OrderNo}已成功关闭！" : $"订单:{req.OrderNo}关闭失败！");
+            if (rspClose?.Status == PaymentStatus.Closed)
+            {
+                payOrder.Status = (int)PaymentStatus.Canceled;
+                payOrder.CloseId = req.CancelerId;
+                payOrder.CloseTime = DateTime.Now;
+                await paymentRepository.OrderCloseAsync(payOrder);
+
+                return ResultModel.Ok($"订单:{req.orderId}已成功关闭！");
+            }
+
+            return ResultModel.Error(500, $"订单:{req.orderId}关闭失败！");
+        }
+
+
+        [HttpGet("memberApply/{payeeNo}")]
+        public ResultModel MemberApply(string payeeNo)
+        {
+            var icbcService = (IcbcService)GetPaymentService(ChannelEnum.ICBC);
+            var rspClose = icbcService?.MemberApply(payeeNo);
+
+            return ResultModel.Ok(rspClose);
         }
 
         [HttpPost("eventreceive")]
@@ -221,31 +273,36 @@ namespace Bank.Controllers
             Console.WriteLine("callback:" + HttpContext.Request.ContentType);
             Console.WriteLine($"callback req: {JsonSerializer.Serialize(req, Constants.JsonSerializerOption)}");
 
-            var paymentService = this.GetPaymentService(ChannelEnum.ICBC);
+            var paymentService = GetPaymentService(ChannelEnum.ICBC);
 
             var bizContent = JsonSerializer.Deserialize<B2cNotifyDto.BizContent>(req.Biz_content, Constants.JsonSerializerOption);
             long orderNo = long.Parse(bizContent.OutTradeNo);
-            var payOrder = await paymentRepository.OrderQueryLastAsync(orderNo);
+            var payOrder = await paymentRepository.OrderQueryAsync(orderNo) ?? throw new NetException(500, "无效的订单号");
 
             // 更新数据库
             if (bizContent.ReturnCode == "0" && payOrder.Status != (int)PaymentStatus.Success)
             {
                 payOrder.Status = (int)PaymentStatus.Success;
                 payOrder.EndTime = DateTime.ParseExact(bizContent.PayTime, "yyyyMMddHHmmss", null);
-                payOrder.FlowNo = bizContent.ThirdTradeNo;
-                payOrder.Reserve = bizContent.order_id;
+                payOrder.FlowNo = bizContent.OrderId;
+                payOrder.OrderNo = bizContent.ThirdTradeNo;
+                payOrder.ErrMsg = bizContent.ReturnMsg;
+
+                await paymentRepository.UpdateAsync(payOrder);
             }
             else if (bizContent.ReturnCode == "1" && payOrder.Status != (int)PaymentStatus.Fail)
+            {
                 payOrder.Status = (int)PaymentStatus.Fail;
+                payOrder.ErrMsg = bizContent.ReturnMsg;
 
-            payOrder.ErrMsg = bizContent.ReturnMsg;
-            await paymentRepository.UpdateAsync(payOrder);
+                await paymentRepository.UpdateAsync(payOrder);
+            }
 
             // 通知业务系统
             var payNotify = await paymentRepository.SelectNotifyAsync(payOrder.Tag);
-            if (payNotify?.Url is { Length: > 0 })
+            if (payNotify?.Url is { Length: > 0 } && payOrder is { Status: (int)PaymentStatus.Success })
             {
-                await httpClient.PostJsonAsync<ResultModel, ResultModel>(payNotify.Url, ResultModel.Ok(new
+                var notifyResult = await httpClient.PostJsonAsync<ResultModel, ResultModel>(payNotify.Url, ResultModel.Ok(new
                 {
                     OrderId = payOrder.Id,
                     Amount = decimal.Divide(payOrder.Amount, 100),
@@ -253,6 +310,11 @@ namespace Bank.Controllers
                     payOrder.FlowNo,
                     PayTime = payOrder.EndTime?.ToString("yyyy-MM-dd HH:mm:ss")
                 }));
+                if (notifyResult is not { Code: 200 })
+                {
+                    logger.LogError($"OrderId:{payOrder.Id}推送失败！");
+                    return "error";
+                }
             }
 
             // 返回应答报文
@@ -262,6 +324,59 @@ namespace Bank.Controllers
                 Channel = ChannelEnum.ICBC,
                 MsgId = bizContent.MsgId
             });
+        }
+
+        [HttpPost("b2bnotify")]
+        public async Task<string> B2BNotify([FromForm] B2bNotifyDto req)
+        {
+            Console.WriteLine($"b2bCallback req: {JsonSerializer.Serialize(req, Constants.JsonSerializerOption)}");
+
+            var bizContent = JsonSerializer.Deserialize<B2bNotifyDto.BizContent>(req.Biz_content, Constants.JsonSerializerOption);
+            long orderNo = long.Parse(bizContent.PartnerSeq);
+            var payOrder = await paymentRepository.OrderQueryAsync(orderNo) ?? throw new NetException(500, "无效的订单号");
+
+            // 更新数据库
+            if (bizContent.PayStatus == "0")
+            {
+                payOrder.Status = (int)(bizContent.PayStatus switch
+                {
+                    "1" or "8" => PaymentStatus.Success,
+                    "2" => PaymentStatus.Fail,
+                    _ => PaymentStatus.Paying
+                });
+                payOrder.FlowNo = bizContent.SerialNo;
+                payOrder.ErrMsg = bizContent.ReturnMsg;
+
+                await paymentRepository.UpdateAsync(payOrder);
+            }
+            else if (bizContent.ReturnCode == "1")
+            {
+                payOrder.Status = (int)PaymentStatus.Fail;
+                payOrder.ErrMsg = bizContent.ReturnMsg;
+
+                await paymentRepository.UpdateAsync(payOrder);
+            }
+
+            // 通知业务系统
+            var payNotify = await paymentRepository.SelectNotifyAsync(payOrder.Tag);
+            if (payNotify?.Url is { Length: > 0 } && payOrder is { Status: (int)PaymentStatus.Success })
+            {
+                var notifyResult = await httpClient.PostJsonAsync<ResultModel, ResultModel>(payNotify.Url, ResultModel.Ok(new
+                {
+                    OrderId = payOrder.Id,
+                    Amount = decimal.Divide(payOrder.Amount, 100),
+                    payOrder.Status,
+                    payOrder.FlowNo
+                }));
+                if (notifyResult is not { Code: 200 })
+                {
+                    logger.LogError($"OrderId:{payOrder.Id}推送失败！");
+                    return "error";
+                }
+            }
+
+            // 返回应答报文
+            return "ok";
         }
 
         #region 获取支付服务

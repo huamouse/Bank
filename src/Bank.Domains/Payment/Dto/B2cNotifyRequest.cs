@@ -43,7 +43,7 @@ namespace Bank.Domains.Payment
             [JsonPropertyName("out_trade_no")]
             public string OutTradeNo { get; set; }
             [JsonPropertyName("order_id")]
-            public string order_id { get; set; }
+            public string OrderId { get; set; }
             [JsonPropertyName("pay_time")]
             public string PayTime { get; set; }
             [JsonPropertyName("total_disc_amt")]

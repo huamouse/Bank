@@ -44,6 +44,7 @@ namespace Icbc
                     rspStr = httpClient.GetStringAsync(request.ServiceUrl).GetAwaiter().GetResult();
                     break;
                 case HttpMethod.Post:
+                    Console.WriteLine($"Icbc Request:{JsonSerializer.Serialize(param, Constants.JsonSerializerOption)}");
                     HttpContent httpContent = new FormUrlEncodedContent(param);
                     rspStr = httpClient.PostAsync(request.ServiceUrl, httpContent).Result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
                     break;
@@ -51,6 +52,8 @@ namespace Icbc
                     throw new Exception("only support GET or POST, method: " + request.Method.ToString());
             }
 
+            Console.WriteLine($"Icbc Response Type:{typeof(T)}");
+            Console.WriteLine($"Icbc Response:{rspStr}");
             return ParseJsonWithIcbcSign(request, rspStr) ?? throw new Exception("response is null.");
         }
 
@@ -116,8 +119,8 @@ namespace Icbc
             int indexOfSignStart = indexOfRootEnd + IcbcConstants.SIGN.Length + 5;
             int indexOfSignEnd = respStr.LastIndexOf("\"");
 
-            respBizContentStr = respStr.Substring(indexOfRootStart, indexOfRootEnd - indexOfRootStart);
-            sign = respStr.Substring(indexOfSignStart, indexOfSignEnd - indexOfSignStart);
+            respBizContentStr = respStr[indexOfRootStart..indexOfRootEnd];
+            sign = respStr[indexOfSignStart..indexOfSignEnd];
 
             RsaUtil rsaUtil = new RsaUtil(null, gatewayPulicKey, RSAType.RSA);
             bool passed = rsaUtil.Verify(respBizContentStr, sign);

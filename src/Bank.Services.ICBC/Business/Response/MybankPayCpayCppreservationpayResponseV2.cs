@@ -8,7 +8,7 @@
 
         public string PartnerSeq { get; set; }
 
-        public object OrderCurr { get; set; }
+        public string OrderCurr { get; set; }
 
         public string PayAmount { get; set; }
 

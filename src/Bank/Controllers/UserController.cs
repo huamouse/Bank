@@ -17,12 +17,12 @@ namespace HouseLease.Controllers
     [Route("[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly JwtBearer jwtBearer;
+        private readonly JwtOptions jwtBearerOption;
         private readonly ILogger<UserController> logger;
 
-        public UserController(IOptions<JwtBearer> jwtBearerOption, ILogger<UserController> logger)
+        public UserController(IOptions<JwtOptions> jwtBearerOption, ILogger<UserController> logger)
         {
-            this.jwtBearer = jwtBearerOption.Value;
+            this.jwtBearerOption = jwtBearerOption.Value;
             this.logger = logger;
         }
 
@@ -40,29 +40,29 @@ namespace HouseLease.Controllers
             };
 
             //var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Authentication:JwtBearer:SecurityKey"]));
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtBearer.SecurityKey));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtBearerOption.SecurityKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var token = new JwtSecurityToken(
                 //颁发者
                 //issuer: configuration["Authentication:JwtBearer:Issuer"],
-                issuer: jwtBearer.Issuer,
+                issuer: jwtBearerOption.Issuer,
                 //接收者
                 //audience: configuration["Authentication:JwtBearer:Audience"],
-                audience: jwtBearer.Audience,
+                audience: jwtBearerOption.Audience,
                 //过期时间
                 expires: DateTime.Now.AddMinutes(30),
                 //签名证书
                 signingCredentials: creds,
                 //自定义参数
                 claims: claims
-                ); ;
+                );
 
             return ResultModel.Ok(new
             {
                 Mobile = userLogin.mobile,
                 //zcUser.ClientId,
                 Token = new JwtSecurityTokenHandler().WriteToken(token)
-            }); ;
+            });
         }
     }
 }

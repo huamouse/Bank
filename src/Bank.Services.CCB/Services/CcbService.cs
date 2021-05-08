@@ -6,27 +6,27 @@ namespace Bank.Services
 {
     public class CcbService : IPaymentService
     {
-        public string OrderClose(OrderQueryReq payQuery)
+        public BasePayRsp OrderClose(OrderQueryReq orderCloseReq)
         {
             throw new NotImplementedException();
         }
 
-        public string OrderNotify(OrderNotifyReq payNotify)
+        public string OrderNotify(OrderNotifyReq orderNotifyReq)
         {
             throw new NotImplementedException();
         }
 
-        public BasePayRsp OrderPay(OrderPayReq payment)
+        public BasePayRsp OrderPay(OrderPayReq orderPayReq)
         {
             throw new NotImplementedException();
         }
 
-        public BasePayRsp OrderQuery(OrderQueryReq payQuery)
+        public OrderQueryRsp OrderQuery(OrderQueryReq orderQueryReq)
         {
             throw new NotImplementedException();
         }
 
-        OrderQueryRsp IPaymentService.OrderQuery(OrderQueryReq payQuery)
+        public BasePayRsp OrderRefund(BasePayReq orderRefundReq)
         {
             throw new NotImplementedException();
         }

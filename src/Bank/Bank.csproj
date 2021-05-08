@@ -3,8 +3,16 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>bank</AssemblyName>
-    <UserSecretsId>60a8ecb7-2814-4d72-9e0d-553bb5fda043</UserSecretsId>
+    <UserSecretsId>82e58a88-e8cf-4322-b088-ea109709bb3a</UserSecretsId>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Caching.Redis" Version="2.2.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Bank.Domains\Bank.Domains.csproj" />

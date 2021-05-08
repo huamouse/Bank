@@ -1,6 +1,5 @@
-﻿using CPTech.EntityFrameworkCore.Mapping;
-using System;
-using System.Collections.Generic;
+﻿using System;
+using CPTech.EFCore.Mapping;
 
 namespace Bank.EFCore.Models
 {
@@ -10,49 +9,49 @@ namespace Bank.EFCore.Models
         public Guid Id { get; set; }
         public bool Deleted { get; set; }
 
-        [FieldAttribute("CREATED_BY")]
+        [Field("CREATED_BY")]
         public Guid? CreatedBy { get; set; }
 
-        [FieldAttribute("DATE_ENTERED")]
+        [Field("DATE_ENTERED")]
         public DateTime DateEntered { get; set; }
 
-        [FieldAttribute("MODIFIED_USER_ID")]
+        [Field("MODIFIED_USER_ID")]
         public Guid? ModifiedUserId { get; set; }
 
-        [FieldAttribute("DATE_MODIFIED")]
+        [Field("DATE_MODIFIED")]
         public DateTime DateModified { get; set; }
 
-        [FieldAttribute("C_ContractID")]
+        [Field("C_ContractID")]
         public Guid? CContractId { get; set; }
 
-        [FieldAttribute("c_paymenttype")]
+        [Field("c_paymenttype")]
         public string CPaymentType { get; set; }
 
-        [FieldAttribute("C_PaymentTotal")]
+        [Field("C_PaymentTotal")]
         public decimal? CPaymentTotal { get; set; }
 
-        [FieldAttribute("C_PaymentDate")]
+        [Field("C_PaymentDate")]
         public DateTime? CPaymentDate { get; set; }
 
-        [FieldAttribute("C_ReceiveUnit")]
+        [Field("C_ReceiveUnit")]
         public string CReceiveUnit { get; set; }
 
-        [FieldAttribute("C_IsRegist")]
+        [Field("C_IsRegist")]
         public string CIsRegist { get; set; }
 
-        [FieldAttribute("C_NOtes")]
+        [Field("C_NOtes")]
         public string CNotes { get; set; }
 
-        [FieldAttribute("C_Status")]
+        [Field("C_Status")]
         public string CStatus { get; set; }
 
-        [FieldAttribute("C_IsInvoice")]
+        [Field("C_IsInvoice")]
         public int? CIsInvoice { get; set; }
 
-        [FieldAttribute("C_ispush")]
+        [Field("C_ispush")]
         public string CIspush { get; set; }
 
-        [FieldAttribute("strC_hongchong")]
+        [Field("strC_hongchong")]
         public string StrCHongchong { get; set; }
     }
 }

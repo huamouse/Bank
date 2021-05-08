@@ -1,9 +1,9 @@
-﻿using CPTech.Core;
+﻿using System;
+using System.Threading.Tasks;
+using CPTech.Core;
 using CPTech.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
 
 namespace Bank.Controllers
 {

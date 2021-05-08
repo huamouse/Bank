@@ -8,5 +8,6 @@
         public ChannelEnum Channel { get; set; }
         // 收款方
         public string Payee { get; set; }
+        public string PayeeName { get; set; }
     }
 }

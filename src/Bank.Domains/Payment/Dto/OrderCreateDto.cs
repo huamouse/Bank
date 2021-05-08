@@ -21,7 +21,8 @@ namespace Bank.Domains.Payment
         [Required(ErrorMessage = "{0}是必填项")]
         public string Note { get; set; }
 
-        public long? CreatorId { get; set; }
+        [Required]
+        public long CreatorId { get; set; }
 
         public long? OldOrderId { get; set; }
 

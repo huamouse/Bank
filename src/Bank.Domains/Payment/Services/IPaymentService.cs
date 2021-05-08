@@ -4,9 +4,10 @@ namespace Bank.Domains.Payment
 {
     public interface IPaymentService
     {
-        BasePayRsp OrderPay(OrderPayReq payment);
-        OrderQueryRsp OrderQuery(OrderQueryReq payQuery);
-        string OrderClose(OrderQueryReq orderCloseReq);
-        string OrderNotify(OrderNotifyReq payNotify);
+        BasePayRsp OrderPay(OrderPayReq orderPayReq);
+        OrderQueryRsp OrderQuery(OrderQueryReq orderQueryReq);
+        BasePayRsp OrderClose(OrderQueryReq orderCloseReq);
+        string OrderNotify(OrderNotifyReq orderNotifyReq);
+        BasePayRsp OrderRefund(BasePayReq orderRefundReq);
     }
 }

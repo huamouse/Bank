@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
-using System.Web;
 
 namespace CPTech.Extensions
 {
@@ -76,15 +71,15 @@ namespace CPTech.Extensions
         {
             using MD5 mi = MD5.Create();
 
-                byte[] buffer = Encoding.Default.GetBytes(txt);
-                //开始加密
-                byte[] newBuffer = mi.ComputeHash(buffer);
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < newBuffer.Length; i++)
-                {
-                    sb.Append(newBuffer[i].ToString("x2"));
-                }
-                return sb.ToString();
+            byte[] buffer = Encoding.Default.GetBytes(txt);
+            //开始加密
+            byte[] newBuffer = mi.ComputeHash(buffer);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < newBuffer.Length; i++)
+            {
+                sb.Append(newBuffer[i].ToString("x2"));
+            }
+            return sb.ToString();
         }
     }
 }

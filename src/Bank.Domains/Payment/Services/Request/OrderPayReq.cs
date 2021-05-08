@@ -6,6 +6,7 @@
         public string OrderNo { get; set; }
         // 付款方
         public string Payer { get; set; }
+        public string PayerName { get; set; }
         // 支付金额，单位：分
         public long Amount { get; set; }
         // 支付事由

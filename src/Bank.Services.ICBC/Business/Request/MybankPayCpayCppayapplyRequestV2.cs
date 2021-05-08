@@ -8,8 +8,8 @@ namespace Icbc.Business
     {
         public override HttpMethod Method => HttpMethod.Post;
 
-        //public override string ServiceUrl => "https://gw.open.icbc.com.cn/api/mybank/pay/cpay/cppayapply/V2";
-        public override string ServiceUrl => "https://apipcs3.dccnet.com.cn/api/mybank/pay/cpay/cppayapply/V2";
+        public override string ServiceUrl => "https://gw.open.icbc.com.cn/api/mybank/pay/cpay/cppayapply/V2";
+        //public override string ServiceUrl => "https://apipcs3.dccnet.com.cn/api/mybank/pay/cpay/cppayapply/V2";
 
         public override Type GetBizContentClass() => typeof(MybankPayCpayCppayapplyResponseV2);
 
@@ -105,7 +105,7 @@ namespace Icbc.Business
             public string PayMode { get; set; }
 
             [JsonPropertyName("operType")]
-            public string OperType { get; set; }
+            public string OperType { get; set; } = "301";
 
             [JsonPropertyName("reservDirect")]
             public string ReservDirect { get; set; }

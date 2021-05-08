@@ -1,6 +1,6 @@
 ﻿namespace CPTech.Models
 {
-    public class JwtBearer
+    public class JwtOptions
     {
         public string IsEnabled { get; set; }
         public string SecurityKey { get; set; }

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Bank.Domains.Payment;
 using Bank.Domains.Payment.Entities;
+using CPTech.EFCore.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace Bank.EFCore.Repositories
@@ -42,10 +43,10 @@ namespace Bank.EFCore.Repositories
             return dbContext.SaveChangesAsync();
         }
 
-        public Task<PayOrder> OrderQueryLastAsync(long orderNo)
+        public Task<PayOrder> OrderQueryAsync(long orderId)
         {
             return dbContext.PayOrders.Where(e => !e.IsDeleted && e.Status != (int)PaymentStatus.Closed && e.Status != (int)PaymentStatus.Canceled)
-                .OrderByDescending(e => e.CreationTime).FirstOrDefaultAsync(e => e.OrderNo == orderNo);
+                .FirstOrDefaultAsync(e => e.Id == orderId);
         }
 
         public Task<PayNotify> SelectNotifyAsync(string tag)
